@@ -14,8 +14,10 @@ class Event():
         self.duration = duration
         self.dependencies = dependencies
 
-    def __str__(self):
+    def __repr__(self):
         return "%s - %i - %s" % (self.name, self.duration, self.dependencies)
 
-e = Event('test', 2, [])
-print(e)
+e1 = Event('test1', 2, [])
+e2 = Event('test2', 3, [e1])
+print(e1)
+print(e2)
