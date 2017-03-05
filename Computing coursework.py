@@ -45,10 +45,24 @@ class Project():
 
 
     def calcEarlyTime():
-        None
-
+        for event in self.ordered:
+            maxEarlyStart = 0
+            for dep in event.dependencies:
+                if dep.duration > maxEarlyStart:
+                    maxEarlyStart = dep.duration
+            
+            event.earlyStart = maxEarlyStart
+            
     def calcLateTime():
-        None
+        #unsure if this works
+        reverseOrdered = list(reversed(ordered))
+        for event in reverseOrdered:
+            minLateStart = reverseOrdered[0].duration
+            for dep in event.dependencies:
+                if dep.duration < minLateStart:
+                    minLateStart = dep.duration
+            
+            event.lateStart = minLateStart
 
     def calcFloats():
         None
