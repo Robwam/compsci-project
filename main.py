@@ -33,40 +33,32 @@ class DummyActivity(Activity):
 
 
 class Project():
-    def __init__(self, activites):
-        self.activites = activites
+    def __init__(self, events):
+        self.events = events
 
+    # Return a list of activites in which can be done
+    def orderEvents(self):
+        ordered = []
+        eventList = self.events
+        while len(eventList) > 0:
+            eventAdded = False
+            for event in eventList:
+                addEvent = True
+                for dep in event.dependencies:
+                    if dep.source not in ordered:
+                        addEvent = False
+                        break
 
+                if addEvent:
+                    ordered.append(event)
+                    eventList.remove(event)
+                    eventAdded = True
 
+            if eventAdded == False:
+                Exception("Events unorderable")
 
-    #     self.eventList = list(eventList)
-    #     self.orderEvents()
-    #
-    # # Returns a list of events in dependency order
-    # #
-    # # For every event which has dependencies in ordered, add this event to ordered
-    # # If no dependencies are in ordered, go to next event
-    # # If list is unorderable, raise an exception
-    # def orderEvents(self):
-    #     ordered = []
-    #     while len(self.eventList) > 0:
-    #         eventAdded = False
-    #         for event in self.eventList:
-    #             addEvent = True
-    #             for dep in event.dependencies:
-    #                 if dep not in ordered:
-    #                     addEvent = False
-    #                     break
-    #             if addEvent:
-    #                 ordered.append(event)
-    #                 self.eventList.remove(event)
-    #                 eventAdded = True
-    #
-    #         if eventAdded == False:
-    #             Exception("Events unorderable")
-    #
-    #     self.eventList = ordered
-    #     return ordered
+        self.events = ordered
+
     #
     #
     # def calcEarlyTime(self):
@@ -115,6 +107,8 @@ class Project():
     #     return None
 
 
+
+
 activites = {
     'A': Activity('A', 3),
     'B': Activity('B', 5),
@@ -136,5 +130,12 @@ dummy_34 = DummyActivity(event_3)
 event_4 = Event(4, [ activites['E'], dummy_34])
 event_5 = Event(5, [ activites['F'],  activites['G'] ])
 event_6 = Event(6, [ activites['H'] ])
+
+activites['A'].source = event_0
+activites['A'].target = event_1
+
+# TODO add source and target events for activites
+# Do this for all the other activites
+
 
 P1 = Project([event_0, event_1, event_2, event_3, event_4, event_5, event_6])
