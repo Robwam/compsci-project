@@ -50,10 +50,10 @@ class Project():
             for dep in event.dependencies:
                 if dep.duration > maxEarlyStart:
                     maxEarlyStart = dep.duration
-            
+
             event.earlyStart = maxEarlyStart
-            
-    def calcLateTime():
+
+    def calcLateTime(self):
         #unsure if this works
         reverseOrdered = list(reversed(ordered))
         for event in reverseOrdered:
@@ -61,27 +61,27 @@ class Project():
             for dep in event.dependencies:
                 if dep.duration < minLateStart:
                     minLateStart = dep.duration
-            
+
             event.lateStart = minLateStart
 
-    def calcFloats():
-        None
+    def calcFloats(self):
+        return None
 
-    def criticalActivities():
+    def criticalActivities(self):
         #Returns a list of the critical activities
-        None
+        return None
 
-    def criticalPath():
+    def criticalPath(self):
         #Returns the order of events in the critical path
-        None
+        return None
 
-    def workerEstimate():
+    def workerEstimate(self):
         #estimate the number of workers required to complete the task in a given
         # timeframe
-        None
+        return None
 
-    def createSchedule():
-        None
+    def createSchedule(self):
+        return None
 
 rmWall = Event('Remove old wall',20, [])
 sWall = Event('sand wall', 30, [rmWall])
