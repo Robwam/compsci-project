@@ -70,7 +70,27 @@ class Project():
             event.earlyStart = maxEarlyStart
      
     def calcLateTimes(self):
+        reversedList = list(reversed(self.events))
         
+        #special cases for source and sink events
+        self.events[0].lateStart = 0
+        self.events[-1].lateStart = self.events[-1].earlyStart
+        
+        #excluding source and sink nodes
+        #their late times are already known
+        for i = 1 to len(reversedList -1):
+            n = 0
+            #finds the shortest duration dependency
+            for activity in reversedList[i-1].dependencies:
+                if n == 0:
+                    minDuration = activity.duration
+                    reversedList[i].lateStart = reversedList[i-1].lateStart - minDuration
+                else:
+                    if activity.duration < minDuration:
+                        minDuration = activity.duration
+                        reversedList[i].lateStart = reversedList[i-1].lateStart - minDuration
+               n = n+1
+            
     #
     # def calcEarlyTime(self):
     #     for event in self.eventList:
