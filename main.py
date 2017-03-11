@@ -40,7 +40,7 @@ class Project():
     def __init__(self, events):
         self.events = events
 
-    # Return a list of activites in which can be done
+    # Return a list of activities in which can be done
     def orderEvents(self):
         ordered = []
         eventList = self.events
@@ -82,7 +82,7 @@ class Project():
         
         #excluding source and sink nodes
         #their late times are already known
-        for i = 1 to len(reversedList -1):
+        for i in range(1, len(reversedList)-1):
             n = 0
             #finds the shortest duration dependency
             for activity in reversedList[i-1].dependencies:
@@ -93,15 +93,21 @@ class Project():
                     if activity.duration < minDuration:
                         minDuration = activity.duration
                         reversedList[i].lateStart = reversedList[i-1].lateStart - minDuration
-               n = n+1
+                n = n+1
             
     def calcFloats(self):
         for activity in activities:
-            activity.floatTime = activity.target.lateTime - activity.duration - activity.source.earlyTime
+            activity.floatTime = (activity.target).lateTime - activity.duration - (activity.source).earlyTime
             
     
     def findCriticalActivities(self):
-        return None
+        criticalActivities = []
+        for activity in activities:
+            if activity.floatTime == 0:
+                criticalActivities.append(activity)
+                
+        return criticalActivities
+        # Note, these activities are likely out of order and need to be ordered
     
     def criticalPath(self):
         return None
@@ -111,56 +117,8 @@ class Project():
     
     def createSchedule(self):
         return None
-    #
-    # def calcEarlyTime(self):
-    #     for event in self.eventList:
-    #         maxEarlyStart = 0
-    #         for dep in event.dependencies:
-    #             potentialSTime = dep.earlyStart + event.duration
-    #             if potentialSTime > maxEarlyStart:
-    #                 maxEarlyStart = potentialSTime
-    #
-    #         event.earlyStart = maxEarlyStart
-    #
-    # def calcLateTime(self):
-    #     #unsure if this works
-    #     reversedEventList = list(reversed(self.eventList))
-    #     previousEvent = None
-    #     for event in reversedEventList:
-    #
-    #
-    #
-    #         # minLateStart = reverseOrdered[0].duration
-    #         # for dep in event.dependencies:
-    #         #     if dep.duration < minLateStart:
-    #         #         minLateStart = dep.duration
-    #         #
-    #         # event.lateStart = minLateStart
-    #         previousEvent = event
-    #
-    # def calcFloats(self):
-    #     return None
-    #
-    # def criticalActivities(self):
-    #     #Returns a list of the critical activities
-    #     return None
-    #
-    # def criticalPath(self):
-    #     #Returns the order of events in the critical path
-    #     return None
-    #
-    # def workerEstimate(self):
-    #     #estimate the number of workers required to complete the task in a given
-    #     # timeframe
-    #     return None
-    #
-    # def createSchedule(self):
-    #     return None
 
-
-
-
-activites = {
+activities = {
     'A': Activity('A', 3),
     'B': Activity('B', 5),
     'C': Activity('C', 2),
@@ -172,18 +130,18 @@ activites = {
 }
 
 event_0 = Event(0, [])
-event_1 = Event(1, [ activites['A'] ])
-event_2 = Event(2, [ activites['B'], activites['D'] ])
-event_3 = Event(3, [ activites['C'] ])
+event_1 = Event(1, [ activities['A'] ])
+event_2 = Event(2, [ activities['B'], activities['D'] ])
+event_3 = Event(3, [ activities['C'] ])
 
 dummy_34 = DummyActivity(event_3)
 
-event_4 = Event(4, [ activites['E'], dummy_34])
-event_5 = Event(5, [ activites['F'],  activites['G'] ])
-event_6 = Event(6, [ activites['H'] ])
+event_4 = Event(4, [ activities['E'], dummy_34])
+event_5 = Event(5, [ activities['F'],  activities['G'] ])
+event_6 = Event(6, [ activities['H'] ])
 
-activites['A'].source = event_0
-activites['A'].target = event_1
+activities['A'].source = event_0
+activities['A'].target = event_1
 
 activities['B'].source = event_0
 activities['B'].target = event_2
@@ -207,3 +165,9 @@ activities['H'].source = event_5
 activities['H'].target = event_6
 
 P1 = Project([event_0, event_1, event_2, event_3, event_4, event_5, event_6])
+P1.orderEvents()
+P1.calcEarlyTimes()
+P1.calcLateTimes()
+P1.calcFloats()
+P1.findCriticalActivities()
+
