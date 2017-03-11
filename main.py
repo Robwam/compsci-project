@@ -59,7 +59,18 @@ class Project():
 
         self.events = ordered
 
-    #
+    def calcEarlyTimes(self):
+        for event in self.events:
+            maxEarlyStart = 0
+            for activity in event.dependencies:
+                potentialStart = activity.duration + activity.source.earlyStart
+                if potentialStart > maxEarlyStart:
+                    maxEarlyStart = potentialStart
+            
+            event.earlyStart = maxEarlyStart
+     
+    def calcLateTimes(self):
+        
     #
     # def calcEarlyTime(self):
     #     for event in self.eventList:
@@ -134,8 +145,25 @@ event_6 = Event(6, [ activites['H'] ])
 activites['A'].source = event_0
 activites['A'].target = event_1
 
-# TODO add source and target events for activites
-# Do this for all the other activites
+activities['B'].source = event_0
+activities['B'].target = event_2
 
+activities['C'].source = event_1
+activities['C'].target = event_3
+
+activities['D'].source = event_1
+activities['D'].target = event_2
+
+activities['E'].source = event_2
+activities['E'].target = event_4
+
+activities['F'].source = event_4
+activities['F'].target = event_5
+
+activities['G'].source = event_3
+activities['G'].target = event_5
+
+activities['H'].source = event_5
+activities['H'].target = event_6
 
 P1 = Project([event_0, event_1, event_2, event_3, event_4, event_5, event_6])
