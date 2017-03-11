@@ -3,7 +3,7 @@
 # Maths critical path analysis
 # https://revisionworld.com/a2-level-level-revision/maths/decision-maths-0/critical-path-analysis
 
-
+# Events connect activities, starting at the source node and ending at the sink node
 class Event():
     def __init__(self, identifier, dependencies, earlyStart=0, lateStart=0):
         self.identifier = identifier
@@ -14,16 +14,19 @@ class Event():
     def __repr__(self):
         return "%s [%i|%i]" % (self.identifier, self.earlyStart, self.lateStart) # - %i - %s" % (self.name, self.duration, self.dependencies)
 
+# Activities are tasks that come from an event and lead to an event
 class Activity():
-    def __init__(self, name, duration, source=None, target=None):
+    def __init__(self, name, duration, source=None, target=None, floatTime=0):
         self.name = name
         self.duration = duration
         self.source = source
         self.target = target
+        self.floatTime = floatTime
 
     def __repr__(self):
         return "%s (%i)" % (self.name, self.duration)
 
+# Dummies are activities with 0 duration
 class DummyActivity(Activity):
     def __init__(self, source, target=None):
         self.name = 'Dummy'
@@ -31,7 +34,8 @@ class DummyActivity(Activity):
         self.source = source
         self.target = target
 
-
+# The overarching project that needs to be completed
+# Made up of events happening in sequence
 class Project():
     def __init__(self, events):
         self.events = events
@@ -68,7 +72,7 @@ class Project():
                     maxEarlyStart = potentialStart
             
             event.earlyStart = maxEarlyStart
-     
+            
     def calcLateTimes(self):
         reversedList = list(reversed(self.events))
         
@@ -91,6 +95,22 @@ class Project():
                         reversedList[i].lateStart = reversedList[i-1].lateStart - minDuration
                n = n+1
             
+    def calcFloats(self):
+        for activity in activities:
+            activity.floatTime = activity.target.lateTime - activity.duration - activity.source.earlyTime
+            
+    
+    def findCriticalActivities(self):
+        return None
+    
+    def criticalPath(self):
+        return None
+    
+    def workerEstimate(self):
+        return None
+    
+    def createSchedule(self):
+        return None
     #
     # def calcEarlyTime(self):
     #     for event in self.eventList:
