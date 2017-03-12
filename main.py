@@ -97,17 +97,17 @@ class Project():
             
     def calcFloats(self):
         for activity in activities:
-            activity.floatTime = (activity.target).lateTime - activity.duration - (activity.source).earlyTime
+            activities[activity].floatTime = activities[activity].target.lateStart - activities[activity].duration - activities[activity].source.earlyStart
             
     
     def findCriticalActivities(self):
         criticalActivities = []
         for activity in activities:
-            if activity.floatTime == 0:
+            if activities[activity].floatTime == 0:
                 criticalActivities.append(activity)
                 
-        return criticalActivities
-        # Note, these activities are likely out of order and need to be ordered
+        self.criticalActivities = criticalActivities
+        # these activities are likely out of order and need to be ordered
     
     def criticalPath(self):
         return None
@@ -171,3 +171,10 @@ P1.calcLateTimes()
 P1.calcFloats()
 P1.findCriticalActivities()
 
+for event in P1.events:
+    print(event.identifier, event.earlyStart, event.lateStart)
+
+
+#Problems:
+    # in P1.events, events 2 and 3 are the wrong way around
+    # all early times are correct, but all late times except 0,5,6 are wrong
