@@ -101,21 +101,37 @@ class Project():
             event.lateStart = min_lateStart
 
     def calcFloats(self):
-        for activity in activities:
-            activities[activity].floatTime = activities[activity].target.lateStart - activities[activity].duration - activities[activity].source.earlyStart
-
+        for activity in self.activities.values():
+            activity.floatTime = activity.target.lateStart - activity.duration - activity.source.earlyStart
 
     def findCriticalActivities(self):
         criticalActivities = []
-        for activity in activities:
-            if activities[activity].floatTime == 0:
+        for activity in self.activities.values():
+            if activity.floatTime == 0:
                 criticalActivities.append(activity)
 
         self.criticalActivities = criticalActivities
         # these activities are likely out of order and need to be ordered
 
+    # NOTE: This only finds a single criticle path
+    # NOTE: This hangs if there is no criticle path
     def criticalPath(self):
-        return None
+        path = []
+        nextEvent = self.events[0]
+        while (True):
+            path.append(nextEvent)
+
+            # Check if this is the sink event, if so break
+            if nextEvent == self.events[-1]:
+                break
+
+            # Look at all out activities, choose a criticle one
+            for activity in self.activitiesFromEvent(nextEvent):
+                if activity in self.criticalActivities:
+                    nextEvent = activity.target
+                    break
+
+        return path
 
     def workerEstimate(self):
         return None
@@ -178,13 +194,4 @@ P1.calcLateTimes()
 P1.calcFloats()
 P1.findCriticalActivities()
 
-print(P1.activitiesFromEvent(event_1))
-print(P1.activitiesFromEvent(event_3))
-
-for event in P1.events:
-    print(event.identifier, event.earlyStart, event.lateStart)
-
-
-#Problems:
-    # in P1.events, events 2 and 3 are the wrong way around
-    # all early times are correct, but all late times except 0,5,6 are wrong
+print(P1.criticalPath())
