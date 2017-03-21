@@ -3,6 +3,8 @@
 # Maths critical path analysis
 # https://revisionworld.com/a2-level-level-revision/maths/decision-maths-0/critical-path-analysis
 
+import math
+
 # Events connect activities, starting at the source node and ending at the sink node
 class Event():
     def __init__(self, identifier, dependencies, earlyStart=0, lateStart=0):
@@ -37,8 +39,9 @@ class DummyActivity(Activity):
 # The overarching project that needs to be completed
 # Made up of events happening in sequence
 class Project():
-    def __init__(self, events):
+    def __init__(self, events, activities):
         self.events = events
+        self.activities = activities
 
     # Return a list of activities in which can be done
     def orderEvents(self):
@@ -70,51 +73,53 @@ class Project():
                 potentialStart = activity.duration + activity.source.earlyStart
                 if potentialStart > maxEarlyStart:
                     maxEarlyStart = potentialStart
-            
+
             event.earlyStart = maxEarlyStart
-            
+
+    def activitiesFromEvent(self, event):
+        out_activities = []
+        for activity in self.activities.values():
+            if activity.source == event:
+                out_activities.append(activity)
+
+        return out_activities
+
     def calcLateTimes(self):
+        # reversed for backwards pass
         reversedList = list(reversed(self.events))
-        
-        #special cases for source and sink events
-        self.events[0].lateStart = 0
+
+        #special cases for sink event
         self.events[-1].lateStart = self.events[-1].earlyStart
-        
-        #excluding source and sink nodes
-        #their late times are already known
-        for i in range(1, len(reversedList)-1):
-            n = 0
-            #finds the shortest duration dependency
-            for activity in reversedList[i-1].dependencies:
-                if n == 0:
-                    minDuration = activity.duration
-                    activity.source.lateStart = activity.target.lateStart - minDuration
-                else:
-                    if activity.duration < minDuration:
-                        minDuration = activity.duration
-                        activity.source.lateStart = activity.target.lateStart - minDuration
-                n = n+1
-            
+
+        for event in reversedList[1:]:
+            min_lateStart = math.inf
+            for activity in self.activitiesFromEvent(event):
+                potentialLateTime = activity.target.lateStart - activity.duration
+                if potentialLateTime < min_lateStart:
+                    min_lateStart = potentialLateTime
+
+            event.lateStart = min_lateStart
+
     def calcFloats(self):
         for activity in activities:
             activities[activity].floatTime = activities[activity].target.lateStart - activities[activity].duration - activities[activity].source.earlyStart
-            
-    
+
+
     def findCriticalActivities(self):
         criticalActivities = []
         for activity in activities:
             if activities[activity].floatTime == 0:
                 criticalActivities.append(activity)
-                
+
         self.criticalActivities = criticalActivities
         # these activities are likely out of order and need to be ordered
-    
+
     def criticalPath(self):
         return None
-    
+
     def workerEstimate(self):
         return None
-    
+
     def createSchedule(self):
         return None
 
@@ -135,8 +140,10 @@ event_2 = Event(2, [ activities['B'], activities['D'] ])
 event_3 = Event(3, [ activities['C'] ])
 
 dummy_34 = DummyActivity(event_3)
+activities['dummy_34'] = dummy_34
 
 event_4 = Event(4, [ activities['E'], dummy_34])
+dummy_34.target = event_4
 event_5 = Event(5, [ activities['F'],  activities['G'] ])
 event_6 = Event(6, [ activities['H'] ])
 
@@ -164,12 +171,15 @@ activities['G'].target = event_5
 activities['H'].source = event_5
 activities['H'].target = event_6
 
-P1 = Project([event_0, event_1, event_2, event_3, event_4, event_5, event_6])
+P1 = Project([event_0, event_1, event_2, event_3, event_4, event_5, event_6], activities)
 P1.orderEvents()
 P1.calcEarlyTimes()
 P1.calcLateTimes()
 P1.calcFloats()
 P1.findCriticalActivities()
+
+print(P1.activitiesFromEvent(event_1))
+print(P1.activitiesFromEvent(event_3))
 
 for event in P1.events:
     print(event.identifier, event.earlyStart, event.lateStart)
