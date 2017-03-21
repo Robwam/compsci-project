@@ -88,11 +88,11 @@ class Project():
             for activity in reversedList[i-1].dependencies:
                 if n == 0:
                     minDuration = activity.duration
-                    reversedList[i].lateStart = reversedList[i-1].lateStart - minDuration
+                    activity.source.lateStart = activity.target.lateStart - minDuration
                 else:
                     if activity.duration < minDuration:
                         minDuration = activity.duration
-                        reversedList[i].lateStart = reversedList[i-1].lateStart - minDuration
+                        activity.source.lateStart = activity.target.lateStart - minDuration
                 n = n+1
             
     def calcFloats(self):
