@@ -4,6 +4,9 @@
 # https://revisionworld.com/a2-level-level-revision/maths/decision-maths-0/critical-path-analysis
 
 import math
+import sys
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QApplication
+from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem
 
 # Events connect activities, starting at the source node and ending at the sink node
 class Event():
@@ -139,59 +142,56 @@ class Project():
     def createSchedule(self):
         return None
 
-activities = {
-    'A': Activity('A', 3),
-    'B': Activity('B', 5),
-    'C': Activity('C', 2),
-    'D': Activity('D', 3),
-    'E': Activity('E', 3),
-    'F': Activity('F', 5),
-    'G': Activity('G', 1),
-    'H': Activity('H', 2),
-}
 
-event_0 = Event(0, [])
-event_1 = Event(1, [ activities['A'] ])
-event_2 = Event(2, [ activities['B'], activities['D'] ])
-event_3 = Event(3, [ activities['C'] ])
+class Example(QMainWindow):
 
-dummy_34 = DummyActivity(event_3)
-activities['dummy_34'] = dummy_34
+    def __init__(self):
+        super().__init__()
 
-event_4 = Event(4, [ activities['E'], dummy_34])
-dummy_34.target = event_4
-event_5 = Event(5, [ activities['F'],  activities['G'] ])
-event_6 = Event(6, [ activities['H'] ])
+        self.initUI()
 
-activities['A'].source = event_0
-activities['A'].target = event_1
 
-activities['B'].source = event_0
-activities['B'].target = event_2
+    def initUI(self):
+        self.setGeometry(300, 300, 290, 150)
 
-activities['C'].source = event_1
-activities['C'].target = event_3
+        # Button stuff
+        btn1 = QPushButton("Button 1", self)
+        btn1.move(30, 50)
 
-activities['D'].source = event_1
-activities['D'].target = event_2
+        btn2 = QPushButton("Button 2", self)
+        btn2.move(150, 50)
 
-activities['E'].source = event_2
-activities['E'].target = event_4
+        btn1.clicked.connect(self.buttonClicked)
+        btn2.clicked.connect(self.buttonClicked)
 
-activities['F'].source = event_4
-activities['F'].target = event_5
 
-activities['G'].source = event_3
-activities['G'].target = event_5
+        # Table stuff
+        self.tableWidget = QTableWidget()
+        self.tableWidget.move(100,100)
+        self.tableWidget.setRowCount(10)
+        self.tableWidget.setColumnCount(2)
 
-activities['H'].source = event_5
-activities['H'].target = event_6
+        self.tableWidget.setItem(1,1, QTableWidgetItem("TEXT")
 
-P1 = Project([event_0, event_1, event_2, event_3, event_4, event_5, event_6], activities)
-P1.orderEvents()
-P1.calcEarlyTimes()
-P1.calcLateTimes()
-P1.calcFloats()
-P1.findCriticalActivities()
+        # Set out layout + add table
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.tableWidget)
+        self.setLayout(self.layout)
 
-print(P1.criticalPath())
+        # Other stuff
+        self.statusBar()
+
+        self.setWindowTitle('Event sender')
+        self.show()
+
+
+    def buttonClicked(self):
+
+        sender = self.sender()
+        self.statusBar().showMessage(sender.text() + ' was pressed')
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = Example()
+    sys.exit(app.exec_())
