@@ -7,6 +7,94 @@ import math
 import sys
 from PyQt5.QtWidgets import *
 
+DEBUG = True
+
+TEST_DATA = [
+  ['A', 3, ''],
+  ['B', 5, ''],
+  ['C', 2, 'A'],
+  ['D', 3, 'A'],
+  ['E', 3, 'B,D'],
+  ['F', 5, 'C,E'],
+  ['G', 1, 'C'],
+  ['H', 2, 'F,G'],
+]
+
+def data_to_events_and_activities(data):
+    # Convert csv dependencies into list
+    # NOTE we sort dependencies so they are order indepenent
+    for row in data:
+        if row[2] == '': # If no dependencies, add empty list
+            row.append([])
+        else:
+            row.append(sorted(row[2].split(',')))
+            row[2] = ','.join(row[3])
+
+    # Create Events
+    unique_dependencies = {}
+    for row in data:
+        if row[2] not in unique_dependencies and row[3] != []:
+            unique_dependencies[row[2]] = row[3]
+
+    events = {
+        'source': Event('source', []),
+        'sink': Event('sink', [])
+    }
+
+    for dependencies in unique_dependencies:
+        events[dependencies] = Event(dependencies, [])
+
+    # Create activities and update their source events
+    activities = {}
+    for row in data:
+        if row[3] == []:
+            source = events['source']
+        else:
+            source = events[row[2]]
+
+        activities[row[0]] = Activity(row[0], row[1], source, None)
+
+    dummies = {}
+
+    # Update the activities target events
+    for activity_key, activity in activities.items():
+        potential_targets = list(filter(lambda s: activity_key in s, unique_dependencies))
+        if len(potential_targets) == 0:
+            activity.target = events['sink']
+            events['sink'].dependencies.append(activity)
+        elif len(potential_targets) == 1:
+            activity.target = events[potential_targets[0]]
+        elif len(potential_targets) == 2: # TODO More cases
+            if (potential_targets[0] == activity_key):
+                i, j = [0, 1]
+            elif (potential_targets[1] == activity_key):
+                i, j = [1, 0]
+            else:
+                print('We need a dummy! Not covered', activity_key, potential_targets)
+                continue
+
+            activity.target = events[potential_targets[i]]
+            dummies[activity_key + '_dummy'] = DummyActivity(activity_key + '_dummy', events[potential_targets[i]], events[potential_targets[j]])
+            e = events[potential_targets[j]]
+            e.dependencies.append(dummies[activity_key + '_dummy'])
+        else:
+            print('We need a dummy!', activity_key, potential_targets)
+
+    # Merge dummies with real
+    activities = {**activities, **dummies}
+
+    # Link events & activities
+    for event in events.values():
+
+        for dep in event.identifier.split(','):
+            if dep in ['source', 'sink']: # TODO check dis
+                continue
+            if dep + '_dummy' in [s.name for s in event.dependencies]:
+                continue
+            event.dependencies.append(activities[dep])
+
+    return [list(events.values()), list(activities.values())]
+
 # Events connect activities, starting at the source node and ending at the sink node
 class Event():
     def __init__(self, identifier, dependencies, earlyStart=0, lateStart=0):
@@ -16,7 +104,17 @@ class Event():
         self.lateStart = lateStart
 
     def __repr__(self):
-        return "%s [%i|%i]" % (self.identifier, self.earlyStart, self.lateStart) # - %i - %s" % (self.name, self.duration, self.dependencies)
+        if self.earlyStart == math.inf:
+            early_start = 'inf'
+        else:
+            early_start = str(self.earlyStart)
+
+        if self.lateStart == math.inf:
+            lateStart = 'inf'
+        else:
+            lateStart = str(self.lateStart)
+
+        return "%s [%s|%s, [%s]]" % (self.identifier, early_start, lateStart, ','.join([d.name for d in self.dependencies])) # - %i - %s" % (self.name, self.duration, self.dependencies)
 
 # Activities are tasks that come from an event and lead to an event
 class Activity():
@@ -28,12 +126,15 @@ class Activity():
         self.floatTime = floatTime
 
     def __repr__(self):
-        return "%s (%i)" % (self.name, self.duration)
+        if (self.source and self.target):
+            return "%s [%i, %s->%s]" % (self.name, self.duration, self.source.identifier, self.target.identifier)
+        else:
+            return "%s [%i]" % (self.name, self.duration)
 
 # Dummies are activities with 0 duration
 class DummyActivity(Activity):
-    def __init__(self, source, target=None):
-        self.name = 'Dummy'
+    def __init__(self, name, source, target=None):
+        self.name = name
         self.duration = 0
         self.source = source
         self.target = target
@@ -118,28 +219,70 @@ class Project():
     # NOTE: This only finds a single criticle path
     # NOTE: This hangs if there is no criticle path
     def criticalPath(self):
-        path = []
+        events_path = []
+        activities_path = []
         nextEvent = self.events[0]
-        while (True):
-            path.append(nextEvent)
+        events_path.append(nextEvent)
+        last = False
+        while (not last):
+
 
             # Check if this is the sink event, if so break
             if nextEvent == self.events[-1]:
-                break
+                last = True
 
             # Look at all out activities, choose a criticle one
             for activity in self.activitiesFromEvent(nextEvent):
                 if activity in self.criticalActivities:
+                    activities_path.append(activity)
                     nextEvent = activity.target
                     break
 
-        return path
+            events_path.append(nextEvent)
 
-    def workerEstimate(self):
-        return None
+        for activity in self.activitiesFromEvent(nextEvent):
+            if activity in self.criticalActivities:
+                activities_path.append(activity)
+
+        self.critcle_activities_path = activities_path
+        self.critcle_events_path = events_path
+        self.criticle_path_length = sum([a.duration for a in self.critcle_activities_path])
+
+    def calc_min_num_worker(self):
+        total_time = sum([a.duration for a in self.activities])
+        return math.ceil(total_time / self.criticle_path_length)
+
+    def calc_schedule(self):
+        pass
+
+    def naive_schedule(self, num_workers):
+        jobs = self.events
+
+        workers_jobs = {}
+
+        for worker in range(0, num_workers):
+            workers_jobs[worker] = []
+
+        while len(jobs) > 0:
+            for worker in workers_jobs:
+                if len(jobs) > 0:
+                    workers_jobs[worker].append(jobs.pop())
+                else:
+                    break
+
+        return workers_jobs
 
     def createSchedule(self):
-        return None
+        self.orderEvents()
+        self.calcEarlyTimes()
+        self.calcLateTimes()
+        self.calcFloats()
+        self.findCriticalActivities()
+        self.criticalPath()
+
+        workers = self.calc_min_num_worker()
+
+        return self.naive_schedule(workers)
 
 
 '''
@@ -162,6 +305,10 @@ class MainWindow(QWidget):
 
         self.inputData = [] # Rows, each contains sub array for columns
         self.project = None
+
+        # NOTE debuggin prepopulate with test data
+        if DEBUG:
+          self.inputData = TEST_DATA
 
         self.initUI()
 
@@ -226,7 +373,8 @@ class MainWindow(QWidget):
         event_name = self.event_name_textbox.text()
         self.event_name_textbox.setText('')
 
-        event_duration = self.event_duration_textbox.text()
+        # TODO verify this is an interger
+        event_duration = int(self.event_duration_textbox.text())
         self.event_duration_textbox.setText('')
 
         event_dependencies = self.event_dependencies_textbox.text()
@@ -240,7 +388,7 @@ class MainWindow(QWidget):
     def updateTable(self):
         for r, row in enumerate(self.inputData):
             for c, col in enumerate(row):
-                self.tableWidget.setItem(r,c, QTableWidgetItem(col))
+                self.tableWidget.setItem(r,c, QTableWidgetItem(str(col)))
 
 
     def create_schedule_project(self):
@@ -249,10 +397,10 @@ class MainWindow(QWidget):
         #   - Convert our input data to event Objects & Activity Objects & Dummy objects
         #   - Run criticle path & ouput to console for now
 
-        for row in self.inputData:
-            event = Event(row[0])
+        events, activities = data_to_events_and_activities(self.inputData)
 
-        #self.project = Project(events, activities)
+        self.project = Project(events, activities)
+        print(self.project.createSchedule())
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
