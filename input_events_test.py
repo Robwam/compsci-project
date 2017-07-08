@@ -1,11 +1,7 @@
 from main import *
 
-# data = [
-#  ['A', 12, ''],
-#  ['B', 2, 'A'],
-#  ['C', 3, 'A'],
-#  ['D', 5, 'B,C']
-# ]
+
+
 
 # Event(identifier, dependencies)
 event0 = Event('0', [])
@@ -32,12 +28,12 @@ dummy_activity_event_3_4 = DummyActivity(event3, event4)
 event1.dependencies = [activity_a]
 event2.dependencies = [activity_b, activity_d]
 event3.dependencies = [activity_c]
-event4.dependencies = [activity_e, dummy_activity_event_3_4]
+event4.dependencies = [activity_e]#, dummy_activity_event_3_4]
 event5.dependencies = [activity_f, activity_g]
 event6.dependencies = [activity_h]
 
 events = [event0, event1, event2, event3, event4, event5, event6]
-activities = [activity_a, activity_b, activity_c, activity_d, activity_e, activity_f, activity_g, activity_h, dummy_activity_event_3_4]
+activities = [activity_a, activity_b, activity_c, activity_d, activity_e, activity_f, activity_g, activity_h]#, dummy_activity_event_3_4]
 
 project = Project(events, activities)
 project.orderEvents()
