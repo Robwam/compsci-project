@@ -5,7 +5,7 @@
 
 import math
 import sys
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QApplication, QTableWidget,QTableWidgetItem, QVBoxLayout
+from PyQt5.QtWidgets import *
 
 # Events connect activities, starting at the source node and ending at the sink node
 class Event():
@@ -80,7 +80,7 @@ class Project():
 
     def activitiesFromEvent(self, event):
         out_activities = []
-        for activity in self.activities.values():
+        for activity in self.activities:
             if activity.source == event:
                 out_activities.append(activity)
 
@@ -103,12 +103,12 @@ class Project():
             event.lateStart = min_lateStart
 
     def calcFloats(self):
-        for activity in self.activities.values():
+        for activity in self.activities:
             activity.floatTime = activity.target.lateStart - activity.duration - activity.source.earlyStart
 
     def findCriticalActivities(self):
         criticalActivities = []
-        for activity in self.activities.values():
+        for activity in self.activities:
             if activity.floatTime == 0:
                 criticalActivities.append(activity)
 
@@ -142,55 +142,119 @@ class Project():
         return None
 
 
-class Example(QMainWindow):
+'''
+TODO:
+  - Allow deletion of events
+  - Dropdown checkbox list to add dependencies
+  - Make sure activity names are unique
+  - Auto space table on window resize
+  - Create project screen
+    - Project name
+    - Start date
+    - End date (5/7 days away from start)
+    - Load project
+    - Save project
+'''
+class MainWindow(QWidget):
 
     def __init__(self):
         super().__init__()
+
+        self.inputData = [] # Rows, each contains sub array for columns
+        self.project = None
 
         self.initUI()
 
 
     def initUI(self):
-        self.setGeometry(300, 300, 290, 150)
+        add_event_button = QPushButton("Add event")
+        add_event_button.clicked.connect(self.get_event_input)
 
-        # Button stuff
-        btn1 = QPushButton("Button 1", self)
-        btn1.move(30, 50)
+        schedule_button = QPushButton("Schedule")
+        schedule_button.clicked.connect(self.create_schedule_project)
 
-        btn2 = QPushButton("Button 2", self)
-        btn2.move(150, 50)
+        #self.le = QLineEdit(self)
+        #self.le.move(130, 22)
 
-        btn1.clicked.connect(self.buttonClicked)
-        btn2.clicked.connect(self.buttonClicked)
+        self.event_name_textbox = QLineEdit(self)
+        self.event_duration_textbox = QLineEdit(self)
+        self.event_dependencies_textbox = QLineEdit(self)
 
-
-        # Table stuff
         self.tableWidget = QTableWidget()
         self.tableWidget.move(100,100)
         self.tableWidget.setRowCount(10)
-        self.tableWidget.setColumnCount(2)
+        self.tableWidget.setColumnCount(3)
+        self.tableWidget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies'])
 
-        self.tableWidget.setItem(1,1, QTableWidgetItem("TEXT"))
+        self.updateTable()
 
-        # Set out layout + add table
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.tableWidget)
-        self.setLayout(self.layout)
+        # Left virticle box
+        labelsVbox = QVBoxLayout()
+        inputsVbox = QVBoxLayout()
+        labelsVbox.addWidget(QLabel("Name:"))
+        inputsVbox.addWidget(self.event_name_textbox)
+        labelsVbox.addWidget(QLabel("Duration:"))
+        inputsVbox.addWidget(self.event_duration_textbox)
+        labelsVbox.addWidget(QLabel("Dependencies:")) # TODO this should be a dropdown list (checkbox list) of Dependencies
+        inputsVbox.addWidget(self.event_dependencies_textbox)
 
-        # Other stuff
-        self.statusBar()
+        leftVboxHbox = QHBoxLayout()
+        leftVboxHbox.addLayout(labelsVbox)
+        leftVboxHbox.addLayout(inputsVbox)
 
-        self.setWindowTitle('Event sender')
+
+        leftVbox = QVBoxLayout()
+        leftVbox.addLayout(leftVboxHbox)
+        leftVbox.addWidget(add_event_button)
+        leftVbox.addWidget(schedule_button)
+
+        # Right virticle box
+        rightVbox = QVBoxLayout()
+        rightVbox.addWidget(self.tableWidget)
+
+        hbox = QHBoxLayout()
+        hbox.addLayout(leftVbox)
+        hbox.addLayout(rightVbox)
+
+        self.setLayout(hbox)
+
+        self.setGeometry(300, 300, 300, 150)
+        self.setWindowTitle('Buttons')
         self.show()
 
+    def get_event_input(self):
+        event_name = self.event_name_textbox.text()
+        self.event_name_textbox.setText('')
 
-    def buttonClicked(self):
+        event_duration = self.event_duration_textbox.text()
+        self.event_duration_textbox.setText('')
 
-        sender = self.sender()
-        self.statusBar().showMessage(sender.text() + ' was pressed')
+        event_dependencies = self.event_dependencies_textbox.text()
+        self.event_dependencies_textbox.setText('')
 
+        self.inputData.append([event_name, event_duration, event_dependencies])
+
+        # TODO add event to table
+        self.updateTable()
+
+    def updateTable(self):
+        for r, row in enumerate(self.inputData):
+            for c, col in enumerate(row):
+                self.tableWidget.setItem(r,c, QTableWidgetItem(col))
+
+
+    def create_schedule_project(self):
+        # TODO
+        #   - New project object
+        #   - Convert our input data to event Objects & Activity Objects & Dummy objects
+        #   - Run criticle path & ouput to console for now
+
+        for row in self.inputData:
+            event = Event(row[0])
+
+        #self.project = Project(events, activities)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = Example()
+    ex = MainWindow()
     sys.exit(app.exec_())
