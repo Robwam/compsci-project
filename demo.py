@@ -7,32 +7,54 @@ class Example(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.inputData = ["Yo Yo"]
+        self.inputData = [] # Rows, each contains sub array for columns
 
         self.initUI()
 
 
     def initUI(self):
-        okButton = QPushButton("OK")
-        okButton.clicked.connect(self.showDialog)
+        add_event_button = QPushButton("Add event")
+        add_event_button.clicked.connect(self.get_event_input)
 
-        cancelButton = QPushButton("Cancel")
-        cancelButton.clicked.connect(self.showDialog)
+        schedule_button = QPushButton("Schedule")
+
+        # TODO wire this up to the schedule
+        #schedule_button.clicked.connect(self.showDialog)
 
         #self.le = QLineEdit(self)
         #self.le.move(130, 22)
 
+        self.event_name_textbox = QLineEdit(self)
+        self.event_duration_textbox = QLineEdit(self)
+        self.event_dependencies_textbox = QLineEdit(self)
+
         self.tableWidget = QTableWidget()
         self.tableWidget.move(100,100)
         self.tableWidget.setRowCount(10)
-        self.tableWidget.setColumnCount(2)
+        self.tableWidget.setColumnCount(3)
+        self.tableWidget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies'])
 
         self.updateTable()
 
-        # Right virticle box
+        # Left virticle box
+        labelsVbox = QVBoxLayout()
+        inputsVbox = QVBoxLayout()
+        labelsVbox.addWidget(QLabel("Name:"))
+        inputsVbox.addWidget(self.event_name_textbox)
+        labelsVbox.addWidget(QLabel("Duration:"))
+        inputsVbox.addWidget(self.event_duration_textbox)
+        labelsVbox.addWidget(QLabel("Dependencies:"))
+        inputsVbox.addWidget(self.event_dependencies_textbox)
+
+        leftVboxHbox = QHBoxLayout()
+        leftVboxHbox.addLayout(labelsVbox)
+        leftVboxHbox.addLayout(inputsVbox)
+
+
         leftVbox = QVBoxLayout()
-        leftVbox.addWidget(okButton)
-        leftVbox.addWidget(cancelButton)
+        leftVbox.addLayout(leftVboxHbox)
+        leftVbox.addWidget(add_event_button)
+        leftVbox.addWidget(schedule_button)
 
         # Right virticle box
         rightVbox = QVBoxLayout()
@@ -48,6 +70,21 @@ class Example(QWidget):
         self.setWindowTitle('Buttons')
         self.show()
 
+    def get_event_input(self):
+        event_name = self.event_name_textbox.text()
+        self.event_name_textbox.setText('')
+
+        event_duration = self.event_duration_textbox.text()
+        self.event_duration_textbox.setText('')
+
+        event_dependencies = self.event_dependencies_textbox.text()
+        self.event_dependencies_textbox.setText('')
+
+        self.inputData.append([event_name, event_duration, event_dependencies])
+
+        # TODO add event to table
+        self.updateTable()
+
     def showDialog(self):
         text, ok = QInputDialog.getText(self, 'Input Dialog', 'Enter your name:')
 
@@ -57,9 +94,46 @@ class Example(QWidget):
             #self.le.setText(str(text))
 
     def updateTable(self):
-        for i, data in enumerate(self.inputData):
-            self.tableWidget.setItem(i,0, QTableWidgetItem(data))
+        for r, row in enumerate(self.inputData):
+            for c, col in enumerate(row):
+                self.tableWidget.setItem(r,c, QTableWidgetItem(col))
 
+
+class Example2(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.initUI()
+
+
+    def initUI(self):
+
+        title = QLabel('Title')
+        author = QLabel('Author')
+        review = QLabel('Review')
+
+        titleEdit = QLineEdit()
+        authorEdit = QLineEdit()
+        reviewEdit = QTextEdit()
+
+        grid = QGridLayout()
+        grid.setSpacing(10)
+
+        grid.addWidget(title, 1, 0)
+        grid.addWidget(titleEdit, 1, 1)
+
+        grid.addWidget(author, 2, 0)
+        grid.addWidget(authorEdit, 2, 1)
+
+        grid.addWidget(review, 3, 0)
+        grid.addWidget(reviewEdit, 3, 1, 5, 1)
+
+        self.setLayout(grid)
+
+        self.setGeometry(300, 300, 350, 300)
+        self.setWindowTitle('Review')
+        self.show()
 
 if __name__ == '__main__':
 

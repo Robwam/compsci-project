@@ -5,8 +5,7 @@
 
 import math
 import sys
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QApplication
-from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QApplication, QTableWidget,QTableWidgetItem, QVBoxLayout
 
 # Events connect activities, starting at the source node and ending at the sink node
 class Event():
@@ -171,7 +170,7 @@ class Example(QMainWindow):
         self.tableWidget.setRowCount(10)
         self.tableWidget.setColumnCount(2)
 
-        self.tableWidget.setItem(1,1, QTableWidgetItem("TEXT")
+        self.tableWidget.setItem(1,1, QTableWidgetItem("TEXT"))
 
         # Set out layout + add table
         self.layout = QVBoxLayout()
