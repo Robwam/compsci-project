@@ -3,9 +3,16 @@
 # Maths critical path analysis
 # https://revisionworld.com/a2-level-level-revision/maths/decision-maths-0/critical-path-analysis
 
+import plot_ghantt
+
 import math
 import sys
 from PyQt5.QtWidgets import *
+
+import matplotlib
+from numpy import arange, sin, pi
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 DEBUG = True
 
@@ -314,6 +321,7 @@ class MainWindow(QWidget):
 
 
     def initUI(self):
+        self.main_widget = QWidget(self)
         add_event_button = QPushButton("Add event")
         add_event_button.clicked.connect(self.get_event_input)
 
@@ -355,9 +363,13 @@ class MainWindow(QWidget):
         leftVbox.addWidget(add_event_button)
         leftVbox.addWidget(schedule_button)
 
+        # TODO setup correct graph
+        graph = MyMplCanvas(self.main_widget, width=5, height=4, dpi=100)
+
         # Right virticle box
         rightVbox = QVBoxLayout()
         rightVbox.addWidget(self.tableWidget)
+        rightVbox.addWidget(graph)
 
         hbox = QHBoxLayout()
         hbox.addLayout(leftVbox)
@@ -401,6 +413,26 @@ class MainWindow(QWidget):
 
         self.project = Project(events, activities)
         print(self.project.createSchedule())
+
+class MyMplCanvas(FigureCanvas):
+    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
+
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+
+        self.compute_initial_figure()
+
+        FigureCanvas.__init__(self, self.fig)
+        self.setParent(parent)
+
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+
+    def compute_initial_figure(self):
+      # TODO this is test data, should be real, duh
+      ylabels, effort, task_dates, pos = plot_ghantt.test_data()
+      plot_ghantt.plot_ghantt(self.fig, self.axes, ylabels, effort, task_dates, pos)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
