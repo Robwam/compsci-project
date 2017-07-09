@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import *
 
 import logging
 logger = logging.getLogger('root')
-logger.info('HELP!')
 
 # TODO
 DEBUG = True

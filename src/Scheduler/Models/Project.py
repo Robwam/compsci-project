@@ -1,7 +1,7 @@
 import math
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('root')
 
 # The overarching project that needs to be completed
 # Made up of events happening in sequence
@@ -10,10 +10,32 @@ class Project():
         self.events = events
         self.activities = activities
 
-    # Return a list of events in which can be done
-    def orderEvents(self):
+    #
+    '''
+    Updates self.events to be in schedulable order
+
+    First check if there is a source event. Then loop through events and
+    add events if their dependencies are members of ordered. This will add
+    events in schedulable order.
+
+    Raises:
+        Exception('No source event')
+        Exception('Events unorderable')
+    '''
+    def order_events(self):
         ordered = []
         eventList = self.events
+
+        # Check we have a source event
+        source_event = False
+        for event in eventList:
+            if event.dependencies == []:
+                source_event = True
+
+        if not source_event:
+            raise Exception('No source event')
+
+
         while len(eventList) > 0:
             eventAdded = False
             for event in eventList:
@@ -29,12 +51,12 @@ class Project():
                     eventAdded = True
 
             if eventAdded == False:
-                Exception("Events unorderable")
+                raise Exception('Events unorderable')
 
         self.events = ordered
 
     def order_activites(self):
-        self.orderEvents()
+        self.order_events()
 
         activities = []
         for event in self.events:
@@ -149,7 +171,7 @@ class Project():
         return workers_jobs
 
     def createSchedule(self):
-        self.orderEvents()
+        self.order_events()
         self.calcEarlyTimes()
         self.calcLateTimes()
         self.calcFloats()
