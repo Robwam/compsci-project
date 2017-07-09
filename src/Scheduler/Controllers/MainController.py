@@ -5,9 +5,8 @@ from Scheduler.Models.Project import Project
 from PyQt5.QtWidgets import *
 
 import logging
-logger = logging.getLogger(__name__)
-
-logger.error('test')
+logger = logging.getLogger('root')
+logger.info('HELP!')
 
 # TODO
 DEBUG = True
