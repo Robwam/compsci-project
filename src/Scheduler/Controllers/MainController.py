@@ -42,6 +42,7 @@ class MainController(QWidget):
 
         self.inputData = [] # Rows, each contains sub array for columns
         self.project = None
+        self.graph = None
 
         # TODO NOTE debuggin prepopulate with test data
         if DEBUG:
@@ -93,21 +94,17 @@ class MainController(QWidget):
         leftVbox.addWidget(add_event_button)
         leftVbox.addWidget(schedule_button)
 
-        # TODO setup correct graph
-        graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100)
-
         # Right virticle box
-        rightVbox = QVBoxLayout()
-        rightVbox.addWidget(self.tableWidget)
-        rightVbox.addWidget(graph)
+        self.rightVbox = QVBoxLayout()
+        self.rightVbox.addWidget(self.tableWidget)
 
         hbox = QHBoxLayout()
         hbox.addLayout(leftVbox)
-        hbox.addLayout(rightVbox)
+        hbox.addLayout(self.rightVbox)
 
         self.setLayout(hbox)
 
-        self.setGeometry(300, 300, 300, 150)
+        self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Buttons')
         self.show()
 
@@ -134,13 +131,11 @@ class MainController(QWidget):
 
 
     def create_schedule_project(self):
-        # TODO
-        #   - New project object
-        #   - Convert our input data to event Objects & Activity Objects & Dummy objects
-        #   - Run criticle path & ouput to console for now
-
         events, activities = data_to_events_and_activities(self.inputData)
 
         self.project = Project(events, activities)
-        logger.info('testing')
-        logger.info(self.project.createSchedule())
+        schedule = self.project.createSchedule()
+
+        self.graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100, data=schedule)
+        self.rightVbox.addWidget(self.graph)
+        self.update()

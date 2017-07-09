@@ -64,49 +64,54 @@ def test_data():
 
     return (ylabels, effort, task_dates, pos)
 
-def plot_gantt(fig, ax, ylabels, effort, task_dates, pos):
+def plot_gantt(fig, ax, data):
     # Plot the data
 
-    start_date,end_date = task_dates[ylabels[0]]
-    ax.barh(0.5, end_date - start_date, left=start_date, height=0.3, align='center', color='blue', alpha = 0.75)
-    ax.barh(0.45, (end_date - start_date)*effort[0][0], left=start_date, height=0.1, align='center', color='red', alpha = 0.75, label = "PI Effort")
-    ax.barh(0.55, (end_date - start_date)*effort[0][1], left=start_date, height=0.1, align='center', color='yellow', alpha = 0.75, label = "Student Effort")
+    # data = {
+    #   0: [{'duration': 3, 'earlyStart': 0}, {'duration': 3, 'earlyStart': 0}, {'duration': 4, 'earlyStart': 12}, {'duration': 4, 'earlyStart': 19}],
+    #   1: [{'duration': 3, 'earlyStart': 0}, {'duration': 3, 'earlyStart': 0}, {'duration': 4, 'earlyStart': 12}, {'duration': 4, 'earlyStart': 19}]
+    # }
 
 
-    for i in range(0,len(ylabels)-1):
-        labels = ['Analysis','Reporting'] if i == 1 else [None,None]
-        start_date,mid_date,end_date = task_dates[ylabels[i+1]]
-        piEffort, studentEffort = effort[i+1]
-        ax.barh((i*0.5)+1.0, mid_date - start_date, left=start_date, height=0.3, align='center', color='blue', alpha = 0.75)
-        ax.barh((i*0.5)+1.0-0.05, (mid_date - start_date)*piEffort, left=start_date, height=0.1, align='center', color='red', alpha = 0.75)
-        ax.barh((i*0.5)+1.0+0.05, (mid_date - start_date)*studentEffort, left=start_date, height=0.1, align='center', color='yellow', alpha = 0.75)
-        # ax.barh((i*0.5)+1.0, end_date - mid_date, left=mid_date, height=0.3, align='center',label=labels[1], color='yellow')
+    for worker_id, worker_activites in data.items():
+        left = 0
+        for activity in worker_activites:
+            if activity.source.earlyStart > left:
+                left = activity.source.earlyStart
+
+            ax.barh((worker_id*1)+0.5, activity.duration, height=1, left=left, align='center', color='blue', edgecolor='black', linewidth=2)
+
+            left += activity.duration
+
+
+    # for i in range(0,len(ylabels)):
+    #     ax.barh(i*1, 3, height=1, left=2, align='center', color='blue', edgecolor='black', linewidth=2)
 
     # Format the y-axis
 
-    locsy, labelsy = yticks(pos,ylabels)
-    plt.setp(labelsy, fontsize = 14)
+    # locsy, labelsy = yticks(pos,ylabels)
+    # plt.setp(labelsy, fontsize = 14)
     #ax.set_yticklabels(pos,ylabels)
 
     # Format the x-axis
-    ax.axis('tight')
-    ax.set_ylim(ymin = -0.1, ymax = 4.5)
+    #ax.axis('tight')
+    # ax.set_ylim(ymin = -0.1, ymax = 4.5)
     ax.grid(color = 'g', linestyle = ':')
 
-    ax.xaxis_date() #Tell matplotlib that these are dates...
+    #ax.xaxis_date() #Tell matplotlib that these are dates...
 
-    rule = rrulewrapper(MONTHLY, interval=1)
-    loc = RRuleLocator(rule)
-    formatter = DateFormatter("%b '%y")
+    # rule = rrulewrapper(MONTHLY, interval=1)
+    # loc = RRuleLocator(rule)
+    # formatter = DateFormatter("%b '%y")
 
-    ax.xaxis.set_major_locator(loc)
-    ax.xaxis.set_major_formatter(formatter)
-    labelsx = ax.get_xticklabels()
-    plt.setp(labelsx, rotation=30, fontsize=12)
+    # ax.xaxis.set_major_locator(loc)
+    # ax.xaxis.set_major_formatter(formatter)
+    # labelsx = ax.get_xticklabels()
+    # plt.setp(labelsx, rotation=30, fontsize=12)
 
     # Format the legend
-    font = font_manager.FontProperties(size='small')
-    ax.legend(loc=1,prop=font)
+    # font = font_manager.FontProperties(size='small')
+    # ax.legend(loc=1,prop=font)
 
     # Finish up
     ax.invert_yaxis()

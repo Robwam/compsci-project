@@ -10,7 +10,7 @@ class Project():
         self.events = events
         self.activities = activities
 
-    # Return a list of activities in which can be done
+    # Return a list of events in which can be done
     def orderEvents(self):
         ordered = []
         eventList = self.events
@@ -32,6 +32,15 @@ class Project():
                 Exception("Events unorderable")
 
         self.events = ordered
+
+    def order_activites(self):
+        self.orderEvents()
+
+        activities = []
+        for event in self.events:
+            activities += self.activitiesFromEvent(event) # Add two lists together
+
+        return reversed(activities)
 
     def calcEarlyTimes(self):
         for event in self.events:
@@ -120,7 +129,10 @@ class Project():
         pass
 
     def naive_schedule(self, num_workers):
-        jobs = self.events
+        # NOTE these should already be in order!
+        jobs = self.order_activites()
+
+        jobs = list(filter(lambda j: j.duration != 0, jobs))
 
         workers_jobs = {}
 
