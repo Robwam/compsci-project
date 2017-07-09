@@ -4,6 +4,8 @@ from Scheduler.Models.Project import Project
 
 from PyQt5.QtWidgets import *
 
+import pickle
+
 import logging
 logger = logging.getLogger('root')
 
@@ -11,37 +13,77 @@ logger = logging.getLogger('root')
 DEBUG = True
 
 TEST_DATA = [
-  ['A', 3, ''],
-  ['B', 5, ''],
-  ['C', 2, 'A'],
-  ['D', 3, 'A'],
-  ['E', 3, 'B,D'],
-  ['F', 5, 'C,E'],
-  ['G', 1, 'C'],
-  ['H', 2, 'F,G'],
+    ['A', 3, ''],
+    ['B', 5, ''],
+    ['C', 2, 'A'],
+    ['D', 3, 'A'],
+    ['E', 3, 'B,D'],
+    ['F', 5, 'C,E'],
+    ['G', 1, 'C'],
+    ['H', 2, 'F,G'],
 ]
 
 '''
 TODO:
-  - Allow deletion of events
-  - Dropdown checkbox list to add dependencies
-  - Make sure activity names are unique
-  - Auto space table on window resize
-  - Create project screen
-    - Project name
-    - Start date
-    - End date (5/7 days away from start)
-    - Load project
+    - Allow deletion of events
+    - Dropdown checkbox list to add dependencies
+    - Make sure activity names are unique
+    - Auto space table on window resize
+    - Create project screen
+        - Project name
+        - Start date
+        - End date (5/7 days away from start)
+        - Load project
     - Save project
 '''
+
+class MainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+
+        self.statusBar()
+
+        menu = self.menuBar().addMenu('File')
+
+        save_action = menu.addAction('Save')
+        save_action.triggered.connect(self.save)
+        load_action = menu.addAction('Load')
+        load_action.triggered.connect(self.load)
+
+        self.setGeometry(300, 300, 800, 600)
+        self.setWindowTitle('Buttons')
+
+        self.main_widget = MainController(self)
+        self.setCentralWidget(self.main_widget)
+        self.show()
+
+
+    def save(self):
+        # TODO allow user to input filename
+        data = {
+          'data': self.main_widget.inputData,
+          'has_been_scheduled': self.main_widget.has_been_scheduled
+        }
+        pickle.dump(data, open("charlies.sched", "wb"))
+
+    def load(self):
+        path = 'charlies.sched'
+        data = pickle.load(open(path, "rb"))
+        self.main_widget.inputData = data['data']
+        self.main_widget.updateTable()
+
+        if data['has_been_scheduled']:
+            self.main_widget.create_schedule_project()
+
 class MainController(QWidget):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super(MainController, self).__init__(parent)
 
         self.inputData = [] # Rows, each contains sub array for columns
         self.project = None
         self.graph = None
+        self.has_been_scheduled = False
 
         # TODO NOTE debuggin prepopulate with test data
         if DEBUG:
@@ -103,9 +145,15 @@ class MainController(QWidget):
 
         self.setLayout(hbox)
 
-        self.setGeometry(300, 300, 800, 600)
-        self.setWindowTitle('Buttons')
-        self.show()
+        # menu = self.menuBar().addMenu('File')
+        # save_action = menu.addAction('Save')
+        # save_action.triggered.connect(self.save)
+        # load_action = menu.addAction('Load')
+        # load_action.triggered.connect(self.load)
+
+        # self.setGeometry(300, 300, 800, 600)
+        # self.setWindowTitle('Buttons')
+        # self.show()
 
     def get_event_input(self):
         event_name = self.event_name_textbox.text()
@@ -138,3 +186,5 @@ class MainController(QWidget):
         self.graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100, data=schedule)
         self.rightVbox.addWidget(self.graph)
         self.update()
+
+        self.has_been_scheduled = True

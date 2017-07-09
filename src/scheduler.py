@@ -1,4 +1,4 @@
-from Scheduler.Controllers.MainController import MainController
+from Scheduler.Controllers.MainController import MainWindow
 
 from PyQt5 import QtWidgets
 import sys
@@ -14,5 +14,5 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 app = QtWidgets.QApplication(sys.argv)
-ex = MainController()
+ex = MainWindow()
 sys.exit(app.exec_())
