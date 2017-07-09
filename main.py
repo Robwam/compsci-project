@@ -3,7 +3,7 @@
 # Maths critical path analysis
 # https://revisionworld.com/a2-level-level-revision/maths/decision-maths-0/critical-path-analysis
 
-import plot_ghantt
+import plot_gantt
 
 import math
 import sys
@@ -431,8 +431,8 @@ class MyMplCanvas(FigureCanvas):
 
     def compute_initial_figure(self):
       # TODO this is test data, should be real, duh
-      ylabels, effort, task_dates, pos = plot_ghantt.test_data()
-      plot_ghantt.plot_ghantt(self.fig, self.axes, ylabels, effort, task_dates, pos)
+      ylabels, effort, task_dates, pos = plot_gantt.test_data()
+      plot_gantt.plot_gantt(self.fig, self.axes, ylabels, effort, task_dates, pos)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
