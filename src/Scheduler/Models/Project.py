@@ -1,5 +1,8 @@
 import math
 
+import logging
+logger = logging.getLogger(__name__)
+
 # The overarching project that needs to be completed
 # Made up of events happening in sequence
 class Project():

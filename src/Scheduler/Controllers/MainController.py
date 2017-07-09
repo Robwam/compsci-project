@@ -4,6 +4,10 @@ from Scheduler.Models.Project import Project
 
 from PyQt5.QtWidgets import *
 
+import logging
+logger = logging.getLogger(__name__)
+
+logger.error('test')
 
 # TODO
 DEBUG = True
@@ -139,4 +143,5 @@ class MainController(QWidget):
         events, activities = data_to_events_and_activities(self.inputData)
 
         self.project = Project(events, activities)
-        print(self.project.createSchedule())
+        logger.info('testing')
+        logger.info(self.project.createSchedule())

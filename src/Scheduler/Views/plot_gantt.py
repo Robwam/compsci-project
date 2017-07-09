@@ -8,6 +8,9 @@ from matplotlib.dates import MONTHLY, DateFormatter, rrulewrapper, RRuleLocator
 
 from pylab import *
 
+import logging
+logger = logging.getLogger(__name__)
+
 def create_date(month,year):
     """Creates the date"""
 

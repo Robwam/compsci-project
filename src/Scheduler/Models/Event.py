@@ -1,5 +1,8 @@
 import math
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Events connect activities, starting at the source node and ending at the sink node
 class Event():
     def __init__(self, identifier, dependencies, earlyStart=0, lateStart=0):

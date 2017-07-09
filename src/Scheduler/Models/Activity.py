@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 # Activities are tasks that come from an event and lead to an event
 class Activity():
     def __init__(self, name, duration, source=None, target=None, floatTime=0):

@@ -1,6 +1,9 @@
 from Scheduler.Models.Activity import Activity, DummyActivity
 from Scheduler.Models.Event import Event
 
+import logging
+logger = logging.getLogger(__name__)
+
 def data_to_events_and_activities(data):
     # Convert csv dependencies into list
     # NOTE we sort dependencies so they are order indepenent
