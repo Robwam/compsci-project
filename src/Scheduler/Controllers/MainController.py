@@ -26,16 +26,8 @@ TEST_DATA = [
 
 '''
 TODO:
-    - Allow deletion of events
-    - Dropdown checkbox list to add dependencies
-    - Make sure activity names are unique
-    - Auto space table on window resize
-    - Create project screen
-        - Project name
-        - Start date
-        - End date (5/7 days away from start)
-        - Load project
-    - Save project
+    - Set event dependency list view max size
+    - Document functions
 '''
 
 class MainWindow(QMainWindow):
@@ -85,7 +77,9 @@ class MainWindow(QMainWindow):
 
         data = {
           'data': self.main_widget.get_table_data(),
-          'has_been_scheduled': self.main_widget.has_been_scheduled
+          'has_been_scheduled': self.main_widget.has_been_scheduled,
+          'project_name': self.main_widget.project_name_textbox.text(),
+          'worker_count': self.main_widget.project_worker_count_textbox.text()
         }
 
         pickle.dump(data, open(path, "wb"))
@@ -99,8 +93,19 @@ class MainWindow(QMainWindow):
 
         data = pickle.load(open(path, "rb"))
 
-        # TODO load into table
-        self.main_widget.event_input_data = data['data']
+        # TODO clear the table
+        self.main_widget.table_widget.setRowCount(0)
+
+        # Load data into table
+        for row in data['data']:
+            row[2] = ','.join(row[2])
+            self.main_widget.add_event_table_row(row)
+
+        if data['project_name']:
+            self.main_widget.project_name_textbox.setText(data['project_name'])
+
+        if data['worker_count']:
+            self.main_widget.project_worker_count_textbox.setText(data['worker_count'])
 
         if data['has_been_scheduled']:
             self.main_widget.create_schedule_project()
@@ -110,50 +115,43 @@ class MainController(QWidget):
     def __init__(self, parent=None):
         super(MainController, self).__init__(parent)
 
-        self.event_dependencies = []
+        self.event_names = []
         self.project = None
         self.graph = None
         self.has_been_scheduled = False
 
-        self.initUI()
+        self.init_ui()
 
         # TODO NOTE debuggin prepopulate with test data
         if DEBUG:
             for row, item in enumerate(TEST_DATA):
                 self.event_name_textbox.setText(item[0])
                 self.event_duration_textbox.setText(str(item[1]))
-                self.get_event_input()
+                self.add_event_from_inputs()
 
-                self.add_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
+                self.add_event_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
                 # TODO NOTE we are not setting the dependency
 
 
     def update_dependeny_listview(self):
         listview_model = QtGui.QStandardItemModel()
 
-        for i, event_dependency in enumerate(self.event_dependencies):
-            item = QtGui.QStandardItem(event_dependency)
+        for i, event_name in enumerate(self.event_names):
+            item = QtGui.QStandardItem(event_name)
             item.setCheckable(True)
             listview_model.appendRow(item)
 
         self.event_dependency_listview.setModel(listview_model)
 
-    def initUI(self):
+    def init_ui(self):
         self.main_widget = QWidget(self)
         add_event_button = QPushButton("Add event")
-        add_event_button.clicked.connect(self.get_event_input)
+        add_event_button.clicked.connect(self.add_event_from_inputs)
 
         schedule_button = QPushButton("Schedule")
         schedule_button.clicked.connect(self.create_schedule_project)
 
-        #self.le = QLineEdit(self)
-        #self.le.move(130, 22)
-
-
-
         self.table_widget = QTableWidget()
-        self.table_widget.move(100,100)
-        #self.table_widget.setRowCount(10)
         self.table_widget.setColumnCount(3)
         self.table_widget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies'])
 
@@ -227,11 +225,17 @@ class MainController(QWidget):
 
         self.setLayout(hbox)
 
-    def handleActivated(self, index):
-        print(self.event_dependency_listview.itemText(index))
-        print(self.event_dependency_listview.itemData(index))
+    def get_event_dependencies(self):
+        event_dependencies = []
+        model = self.event_dependency_listview.model()
+        for row in range(model.rowCount()):
+            item = model.item(row)
+            if item.checkState() == QtCore.Qt.Checked:
+                event_dependencies.append(model.data(model.index(row, 0)))
 
-    def get_event_input(self):
+        return event_dependencies
+
+    def add_event_from_inputs(self):
         event_name = self.event_name_textbox.text()
         self.event_name_textbox.setText('')
 
@@ -239,30 +243,23 @@ class MainController(QWidget):
         event_duration = int(self.event_duration_textbox.text())
         self.event_duration_textbox.setText('')
 
-        # TODO fix this!
-        # print(self.event_dependency_listview)
-        # print(self.event_dependency_listview.selectedItems())
-        # print(self.event_dependency_listview.selectedIndexes()[0].data())
-
-        # Get dependencies from table
-        event_dependencies = [str(self.get_table_data[i][0]) for i in self.event_dependency_listview.selectedIndexes()]
-
         # Add to table
-        self.add_table_row([event_name, event_duration, ','.join(event_dependencies)])
+        self.add_event_table_row([event_name, event_duration, ','.join(self.get_event_dependencies())])
 
-        # Update our dependencies
-        self.event_dependencies.append(event_name)
-
-        # TODO add event to 1
         self.update_dependeny_listview()
 
-    def add_table_row(self, data, row_overide=None):
-
+    def add_event_table_row(self, data, row_overide=None):
         if row_overide is None:
             last_row = self.table_widget.rowCount()
             self.table_widget.setRowCount(last_row+1)
         else:
             last_row = row_overide
+
+        # Update our dependencies and ensure unique
+        # TODO order this
+        # TODO when table updated this list should be updated, need to add event handler for table change
+        if data[0] not in self.event_names:
+            self.event_names.append(data[0])
 
         for i, d in enumerate(data):
             self.table_widget.setItem(last_row, i, QTableWidgetItem(str(d)))
