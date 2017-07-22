@@ -45,10 +45,14 @@ class MainWindow(QMainWindow):
 
         menu = self.menuBar().addMenu('File')
 
-        save_action = menu.addAction('Save')
-        save_action.triggered.connect(self.save)
-        load_action = menu.addAction('Load')
-        load_action.triggered.connect(self.load)
+        save_project_action = menu.addAction('Save Project')
+        save_project_action.triggered.connect(self.save_project)
+
+        load_project_action = menu.addAction('Load Project')
+        load_project_action.triggered.connect(self.load_project)
+
+        schedule_image_action = menu.addAction('Save Schedule Image')
+        schedule_image_action.triggered.connect(self.save_schedule_image)
 
         self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Buttons')
@@ -57,17 +61,41 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_widget)
         self.show()
 
+    def save_schedule_image(self):
+        # Error if no schedule diagram
+        if not self.main_widget.has_been_scheduled:
+            QMessageBox.about(self, "Error", "Please schedule before attempting to save")
+            return
 
-    def save(self):
-        # TODO allow user to input filename
+        path, _ = QFileDialog.getSaveFileName(self, "Save Schedule Image", "","All Files (*.png)")
+
+        # No action if cancel
+        if not path:
+            return
+
+        self.main_widget.graph.save_figure(path)
+
+    def save_project(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Save Project", "","All Files (*.sched)")
+
+        # No action if cancel
+        if not path:
+            return
+
         data = {
           'data': self.main_widget.inputData,
           'has_been_scheduled': self.main_widget.has_been_scheduled
         }
-        pickle.dump(data, open("charlies.sched", "wb"))
 
-    def load(self):
-        path = 'charlies.sched'
+        pickle.dump(data, open(path, "wb"))
+
+    def load_project(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Load Project", "","All Files (*.sched)")
+
+        # No action if cancel
+        if not path:
+            return
+
         data = pickle.load(open(path, "rb"))
         self.main_widget.inputData = data['data']
         self.main_widget.updateTable()
@@ -179,6 +207,11 @@ class MainController(QWidget):
 
     def create_schedule_project(self):
         events, activities = data_to_events_and_activities(self.inputData)
+
+        # Delete old widget
+        if self.graph:
+            self.rightVbox.removeWidget(self.graph)
+            self.graph.deleteLater()
 
         self.project = Project(events, activities)
         schedule = self.project.createSchedule()

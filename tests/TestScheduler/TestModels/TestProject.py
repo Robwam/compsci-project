@@ -8,6 +8,7 @@ class TestProject():
     def __init__(self):
         self.test_project = None
 
+    # Called automatically by nose
     def setUp(self):
         self.test_project = Project(mock_data.m1_events, mock_data.m1_activities)
         self.test_project_no_source = Project(mock_data.no_source_events, mock_data.no_source_activities)
