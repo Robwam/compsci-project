@@ -143,7 +143,7 @@ class MainController(QWidget):
 
         self.updateTable()
 
-        # Left virticle box
+        # Left verticle box
         labelsVbox = QVBoxLayout()
         inputsVbox = QVBoxLayout()
         labelsVbox.addWidget(QLabel("Name:"))
@@ -163,7 +163,7 @@ class MainController(QWidget):
         leftVbox.addWidget(add_event_button)
         leftVbox.addWidget(schedule_button)
 
-        # Right virticle box
+        # Right verticle box
         self.rightVbox = QVBoxLayout()
         self.rightVbox.addWidget(self.tableWidget)
 
@@ -173,15 +173,6 @@ class MainController(QWidget):
 
         self.setLayout(hbox)
 
-        # menu = self.menuBar().addMenu('File')
-        # save_action = menu.addAction('Save')
-        # save_action.triggered.connect(self.save)
-        # load_action = menu.addAction('Load')
-        # load_action.triggered.connect(self.load)
-
-        # self.setGeometry(300, 300, 800, 600)
-        # self.setWindowTitle('Buttons')
-        # self.show()
 
     def get_event_input(self):
         event_name = self.event_name_textbox.text()
