@@ -170,7 +170,7 @@ class Project():
 
         return workers_jobs
 
-    def createSchedule(self):
+    def createSchedule(self, workers=None):
         self.order_events()
         self.calcEarlyTimes()
         self.calcLateTimes()
@@ -178,6 +178,10 @@ class Project():
         self.findCriticalActivities()
         self.criticalPath()
 
-        workers = self.calc_min_num_worker()
+        min_num_workers = self.calc_min_num_worker()
+
+        # Set the worker count to the miniumum number of workers if
+        if not workers or workers > min_num_workers:
+            workers = min_num_workers
 
         return self.naive_schedule(workers)

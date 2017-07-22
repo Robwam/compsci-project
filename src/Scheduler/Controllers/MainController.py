@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
             return
 
         data = {
-          'data': self.main_widget.inputData,
+          'data': self.main_widget.event_input_data,
           'has_been_scheduled': self.main_widget.has_been_scheduled
         }
 
@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
             return
 
         data = pickle.load(open(path, "rb"))
-        self.main_widget.inputData = data['data']
+        self.main_widget.event_input_data = data['data']
         self.main_widget.updateTable()
 
         if data['has_been_scheduled']:
@@ -108,14 +108,14 @@ class MainController(QWidget):
     def __init__(self, parent=None):
         super(MainController, self).__init__(parent)
 
-        self.inputData = [] # Rows, each contains sub array for columns
+        self.event_input_data = [] # Rows, each contains sub array for columns
         self.project = None
         self.graph = None
         self.has_been_scheduled = False
 
         # TODO NOTE debuggin prepopulate with test data
         if DEBUG:
-          self.inputData = TEST_DATA
+          self.event_input_data = TEST_DATA
 
         self.initUI()
 
@@ -131,9 +131,7 @@ class MainController(QWidget):
         #self.le = QLineEdit(self)
         #self.le.move(130, 22)
 
-        self.event_name_textbox = QLineEdit(self)
-        self.event_duration_textbox = QLineEdit(self)
-        self.event_dependencies_textbox = QLineEdit(self)
+
 
         self.tableWidget = QTableWidget()
         self.tableWidget.move(100,100)
@@ -143,32 +141,93 @@ class MainController(QWidget):
 
         self.updateTable()
 
-        # Left verticle box
-        labelsVbox = QVBoxLayout()
-        inputsVbox = QVBoxLayout()
-        labelsVbox.addWidget(QLabel("Name:"))
-        inputsVbox.addWidget(self.event_name_textbox)
-        labelsVbox.addWidget(QLabel("Duration:"))
-        inputsVbox.addWidget(self.event_duration_textbox)
-        labelsVbox.addWidget(QLabel("Dependencies:")) # TODO this should be a dropdown list (checkbox list) of Dependencies
-        inputsVbox.addWidget(self.event_dependencies_textbox)
+        # -- Project Metadata
+        # Create our Horizontal container
+        project_metadata_h_box = QHBoxLayout()
 
-        leftVboxHbox = QHBoxLayout()
-        leftVboxHbox.addLayout(labelsVbox)
-        leftVboxHbox.addLayout(inputsVbox)
+        # Create our text boxes
+        self.project_name_textbox = QLineEdit(self)
+        self.project_worker_count_textbox = QLineEdit(self)
+
+        # Create two vertical layouts for labels and inputs
+        project_metadata_labels_v_box = QVBoxLayout()
+        project_metadata_inputs_v_box = QVBoxLayout()
+
+        # Add our label and input layouts
+        project_metadata_h_box.addLayout(project_metadata_labels_v_box)
+        project_metadata_h_box.addLayout(project_metadata_inputs_v_box)
+
+        # Create labels and inputs
+        project_metadata_labels_v_box.addWidget(QLabel("Project name:"))
+        project_metadata_inputs_v_box.addWidget(self.project_name_textbox)
+        project_metadata_labels_v_box.addWidget(QLabel("Number of worker:"))
+        project_metadata_inputs_v_box.addWidget(self.project_worker_count_textbox)
 
 
-        leftVbox = QVBoxLayout()
-        leftVbox.addLayout(leftVboxHbox)
-        leftVbox.addWidget(add_event_button)
-        leftVbox.addWidget(schedule_button)
+        # -- Event Inputs
+        # Create our Horizontal container
+        event_inputs_h_box = QHBoxLayout()
+
+        # Create our text boxes
+        self.event_name_textbox = QLineEdit(self)
+        self.event_duration_textbox = QLineEdit(self)
+        self.event_dependencies_textbox = QLineEdit(self)
+
+        # Create two vertical layouts for labels and inputs
+        event_input_labels_v_box = QVBoxLayout()
+        event_input_inputs_v_box = QVBoxLayout()
+
+        # Add our label and input layouts
+        event_inputs_h_box.addLayout(event_input_labels_v_box)
+        event_inputs_h_box.addLayout(event_input_inputs_v_box)
+        event_inputs_h_box.addWidget(add_event_button)
+
+        # Create labels and inputs
+        event_input_labels_v_box.addWidget(QLabel("Name:"))
+        event_input_inputs_v_box.addWidget(self.event_name_textbox)
+        event_input_labels_v_box.addWidget(QLabel("Duration:"))
+        event_input_inputs_v_box.addWidget(self.event_duration_textbox)
+        event_input_labels_v_box.addWidget(QLabel("Dependencies:"))
+        event_input_inputs_v_box.addWidget(self.event_dependencies_textbox)
+
+        # -- Project controls
+        project_controls_v_box = QVBoxLayout()
+        project_controls_v_box.addLayout(project_metadata_h_box)
+        project_controls_v_box.addLayout(event_inputs_h_box)
+        project_controls_v_box.addWidget(add_event_button)
+        project_controls_v_box.addWidget(schedule_button)
+
+        # # Event IO
+        # self.event_name_textbox = QLineEdit(self)
+        # self.event_duration_textbox = QLineEdit(self)
+        # self.event_dependencies_textbox = QLineEdit(self)
+        #
+        # labelsVbox = QVBoxLayout()
+        # inputsVbox = QVBoxLayout()
+        # labelsVbox.addWidget(QLabel("Name:"))
+        # inputsVbox.addWidget(self.event_name_textbox)
+        # labelsVbox.addWidget(QLabel("Duration:"))
+        # inputsVbox.addWidget(self.event_duration_textbox)
+        # labelsVbox.addWidget(QLabel("Dependencies:")) # TODO this should be a dropdown list (checkbox list) of Dependencies
+        # inputsVbox.addWidget(self.event_dependencies_textbox)
+        #
+        # leftVboxHbox = QHBoxLayout()
+        # leftVboxHbox.addLayout(labelsVbox)
+        # leftVboxHbox.addLayout(inputsVbox)
+
+
+        # leftVbox = QVBoxLayout()
+        # leftVbox.addLayout(leftVboxHbox)
+        # leftVbox.addWidget(project_metadata_h_box)
+        # leftVbox.addWidget(add_event_button)
+        # leftVbox.addWidget(schedule_button)
 
         # Right verticle box
         self.rightVbox = QVBoxLayout()
         self.rightVbox.addWidget(self.tableWidget)
 
         hbox = QHBoxLayout()
-        hbox.addLayout(leftVbox)
+        hbox.addLayout(project_controls_v_box)
         hbox.addLayout(self.rightVbox)
 
         self.setLayout(hbox)
@@ -185,27 +244,40 @@ class MainController(QWidget):
         event_dependencies = self.event_dependencies_textbox.text()
         self.event_dependencies_textbox.setText('')
 
-        self.inputData.append([event_name, event_duration, event_dependencies])
+        self.event_input_data.append([event_name, event_duration, event_dependencies])
 
         # TODO add event to table
         self.updateTable()
 
     def updateTable(self):
-        for r, row in enumerate(self.inputData):
+        for r, row in enumerate(self.event_input_data):
             for c, col in enumerate(row):
                 self.tableWidget.setItem(r,c, QTableWidgetItem(str(col)))
 
 
     def create_schedule_project(self):
-        events, activities = data_to_events_and_activities(self.inputData)
+        events, activities = data_to_events_and_activities(self.event_input_data)
 
         # Delete old widget
         if self.graph:
             self.rightVbox.removeWidget(self.graph)
             self.graph.deleteLater()
 
+        # Get worker count
+        worker_count_str = self.project_worker_count_textbox.text()
+        if len(worker_count_str) == 0:
+            worker_count = None
+        else:
+            try:
+                worker_count = int(worker_count_str)
+                if worker_count <= 0:
+                    raise Exception("worker count must be positive")
+            except:
+                QMessageBox.about(self, "Error", "Worker count must be a positive integer")
+                return
+
         self.project = Project(events, activities)
-        schedule = self.project.createSchedule()
+        schedule = self.project.createSchedule(worker_count)
 
         self.graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100, data=schedule)
         self.rightVbox.addWidget(self.graph)
