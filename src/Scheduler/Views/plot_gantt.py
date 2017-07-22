@@ -79,7 +79,12 @@ def plot_gantt(fig, ax, data):
             if activity.source.earlyStart > left:
                 left = activity.source.earlyStart
 
-            ax.barh((worker_id*1)+0.5, activity.duration, height=1, left=left, align='center', color='blue', edgecolor='black', linewidth=2)
+            # Get label with character limit
+            name = activity.name[0:min(15, len(activity.name))]
+
+            ax.barh((worker_id*1)+0.5, activity.duration, height=1, left=left, align='center', color='blue', edgecolor='black', linewidth=2, tick_label='bannaa')
+            label = ax.text(left + (activity.duration/2), (worker_id*1)+0.5, name, verticalalignment='center', horizontalalignment='center', rotation=90)
+
 
             left += activity.duration
 
@@ -88,10 +93,8 @@ def plot_gantt(fig, ax, data):
     #     ax.barh(i*1, 3, height=1, left=2, align='center', color='blue', edgecolor='black', linewidth=2)
 
     # Format the y-axis
-
-    # locsy, labelsy = yticks(pos,ylabels)
-    # plt.setp(labelsy, fontsize = 14)
-    #ax.set_yticklabels(pos,ylabels)
+    ax.set_yticks([i+0.5 for i in data.keys()])
+    ax.set_yticklabels(['worker %i' % (i+1) for i in data.keys()], rotation=90)
 
     # Format the x-axis
     #ax.axis('tight')
@@ -109,10 +112,9 @@ def plot_gantt(fig, ax, data):
     # labelsx = ax.get_xticklabels()
     # plt.setp(labelsx, rotation=30, fontsize=12)
 
-    # Format the legend
-    # font = font_manager.FontProperties(size='small')
-    # ax.legend(loc=1,prop=font)
-
     # Finish up
     ax.invert_yaxis()
+    ax.set_title('Schedule')
+    ax.set_xlabel('Time (hours)')
+    ax.set_ylabel('Worker')
     fig.autofmt_xdate()

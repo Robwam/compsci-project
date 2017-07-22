@@ -3,6 +3,7 @@ from Scheduler.Controllers.input_to_project import data_to_events_and_activities
 from Scheduler.Models.Project import Project
 
 from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, QtGui
 
 import pickle
 
@@ -13,14 +14,14 @@ logger = logging.getLogger('root')
 DEBUG = True
 
 TEST_DATA = [
-    ['A', 3, ''],
-    ['B', 5, ''],
-    ['C', 2, 'A'],
-    ['D', 3, 'A'],
-    ['E', 3, 'B,D'],
-    ['F', 5, 'C,E'],
-    ['G', 1, 'C'],
-    ['H', 2, 'F,G'],
+    ['A', 3, set()],
+    ['B', 5, set()],
+    ['C', 2, set(['A'])],
+    ['D', 3, set(['A'])],
+    ['E', 3, set(['B', 'D'])],
+    ['F', 5, set(['C', 'E'])],
+    ['G', 1, set(['C'])],
+    ['H', 2, set(['F', 'G'])],
 ]
 
 '''
@@ -83,7 +84,7 @@ class MainWindow(QMainWindow):
             return
 
         data = {
-          'data': self.main_widget.event_input_data,
+          'data': self.main_widget.get_table_data(),
           'has_been_scheduled': self.main_widget.has_been_scheduled
         }
 
@@ -97,8 +98,9 @@ class MainWindow(QMainWindow):
             return
 
         data = pickle.load(open(path, "rb"))
+
+        # TODO load into table
         self.main_widget.event_input_data = data['data']
-        self.main_widget.updateTable()
 
         if data['has_been_scheduled']:
             self.main_widget.create_schedule_project()
@@ -108,17 +110,33 @@ class MainController(QWidget):
     def __init__(self, parent=None):
         super(MainController, self).__init__(parent)
 
-        self.event_input_data = [] # Rows, each contains sub array for columns
+        self.event_dependencies = []
         self.project = None
         self.graph = None
         self.has_been_scheduled = False
 
-        # TODO NOTE debuggin prepopulate with test data
-        if DEBUG:
-          self.event_input_data = TEST_DATA
-
         self.initUI()
 
+        # TODO NOTE debuggin prepopulate with test data
+        if DEBUG:
+            for row, item in enumerate(TEST_DATA):
+                self.event_name_textbox.setText(item[0])
+                self.event_duration_textbox.setText(str(item[1]))
+                self.get_event_input()
+
+                self.add_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
+                # TODO NOTE we are not setting the dependency
+
+
+    def update_dependeny_listview(self):
+        listview_model = QtGui.QStandardItemModel()
+
+        for i, event_dependency in enumerate(self.event_dependencies):
+            item = QtGui.QStandardItem(event_dependency)
+            item.setCheckable(True)
+            listview_model.appendRow(item)
+
+        self.event_dependency_listview.setModel(listview_model)
 
     def initUI(self):
         self.main_widget = QWidget(self)
@@ -133,13 +151,11 @@ class MainController(QWidget):
 
 
 
-        self.tableWidget = QTableWidget()
-        self.tableWidget.move(100,100)
-        self.tableWidget.setRowCount(10)
-        self.tableWidget.setColumnCount(3)
-        self.tableWidget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies'])
-
-        self.updateTable()
+        self.table_widget = QTableWidget()
+        self.table_widget.move(100,100)
+        #self.table_widget.setRowCount(10)
+        self.table_widget.setColumnCount(3)
+        self.table_widget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies'])
 
         # -- Project Metadata
         # Create our Horizontal container
@@ -163,6 +179,9 @@ class MainController(QWidget):
         project_metadata_labels_v_box.addWidget(QLabel("Number of worker:"))
         project_metadata_inputs_v_box.addWidget(self.project_worker_count_textbox)
 
+        # TODO Testing
+        self.event_dependency_listview = QListView(self)
+        self.update_dependeny_listview()
 
         # -- Event Inputs
         # Create our Horizontal container
@@ -188,7 +207,8 @@ class MainController(QWidget):
         event_input_labels_v_box.addWidget(QLabel("Duration:"))
         event_input_inputs_v_box.addWidget(self.event_duration_textbox)
         event_input_labels_v_box.addWidget(QLabel("Dependencies:"))
-        event_input_inputs_v_box.addWidget(self.event_dependencies_textbox)
+        # TODO event_input_inputs_v_box.addWidget(self.event_dependencies_textbox)
+        event_input_inputs_v_box.addWidget(self.event_dependency_listview)
 
         # -- Project controls
         project_controls_v_box = QVBoxLayout()
@@ -197,34 +217,9 @@ class MainController(QWidget):
         project_controls_v_box.addWidget(add_event_button)
         project_controls_v_box.addWidget(schedule_button)
 
-        # # Event IO
-        # self.event_name_textbox = QLineEdit(self)
-        # self.event_duration_textbox = QLineEdit(self)
-        # self.event_dependencies_textbox = QLineEdit(self)
-        #
-        # labelsVbox = QVBoxLayout()
-        # inputsVbox = QVBoxLayout()
-        # labelsVbox.addWidget(QLabel("Name:"))
-        # inputsVbox.addWidget(self.event_name_textbox)
-        # labelsVbox.addWidget(QLabel("Duration:"))
-        # inputsVbox.addWidget(self.event_duration_textbox)
-        # labelsVbox.addWidget(QLabel("Dependencies:")) # TODO this should be a dropdown list (checkbox list) of Dependencies
-        # inputsVbox.addWidget(self.event_dependencies_textbox)
-        #
-        # leftVboxHbox = QHBoxLayout()
-        # leftVboxHbox.addLayout(labelsVbox)
-        # leftVboxHbox.addLayout(inputsVbox)
-
-
-        # leftVbox = QVBoxLayout()
-        # leftVbox.addLayout(leftVboxHbox)
-        # leftVbox.addWidget(project_metadata_h_box)
-        # leftVbox.addWidget(add_event_button)
-        # leftVbox.addWidget(schedule_button)
-
-        # Right verticle box
+        # Main V box
         self.rightVbox = QVBoxLayout()
-        self.rightVbox.addWidget(self.tableWidget)
+        self.rightVbox.addWidget(self.table_widget)
 
         hbox = QHBoxLayout()
         hbox.addLayout(project_controls_v_box)
@@ -232,6 +227,9 @@ class MainController(QWidget):
 
         self.setLayout(hbox)
 
+    def handleActivated(self, index):
+        print(self.event_dependency_listview.itemText(index))
+        print(self.event_dependency_listview.itemData(index))
 
     def get_event_input(self):
         event_name = self.event_name_textbox.text()
@@ -241,22 +239,55 @@ class MainController(QWidget):
         event_duration = int(self.event_duration_textbox.text())
         self.event_duration_textbox.setText('')
 
-        event_dependencies = self.event_dependencies_textbox.text()
-        self.event_dependencies_textbox.setText('')
+        # TODO fix this!
+        # print(self.event_dependency_listview)
+        # print(self.event_dependency_listview.selectedItems())
+        # print(self.event_dependency_listview.selectedIndexes()[0].data())
 
-        self.event_input_data.append([event_name, event_duration, event_dependencies])
+        # Get dependencies from table
+        event_dependencies = [str(self.get_table_data[i][0]) for i in self.event_dependency_listview.selectedIndexes()]
 
-        # TODO add event to table
-        self.updateTable()
+        # Add to table
+        self.add_table_row([event_name, event_duration, ','.join(event_dependencies)])
 
-    def updateTable(self):
-        for r, row in enumerate(self.event_input_data):
-            for c, col in enumerate(row):
-                self.tableWidget.setItem(r,c, QTableWidgetItem(str(col)))
+        # Update our dependencies
+        self.event_dependencies.append(event_name)
 
+        # TODO add event to 1
+        self.update_dependeny_listview()
+
+    def add_table_row(self, data, row_overide=None):
+
+        if row_overide is None:
+            last_row = self.table_widget.rowCount()
+            self.table_widget.setRowCount(last_row+1)
+        else:
+            last_row = row_overide
+
+        for i, d in enumerate(data):
+            self.table_widget.setItem(last_row, i, QTableWidgetItem(str(d)))
+
+    def get_table_data(self):
+        table_model = self.table_widget.model()
+        table_data = []
+        for row in range(table_model.rowCount()):
+            table_data.append([])
+            for column in range(table_model.columnCount()):
+                index = table_model.index(row, column)
+                data = str(table_model.data(index))
+                if column == 1:
+                    data = int(data)
+
+                if column == 2:
+                    data = list(filter(None, data.split(','))) # Remove empty
+
+                table_data[row].append(data)
+
+        return table_data
 
     def create_schedule_project(self):
-        events, activities = data_to_events_and_activities(self.event_input_data)
+        print(self.get_table_data())
+        events, activities = data_to_events_and_activities(self.get_table_data())
 
         # Delete old widget
         if self.graph:

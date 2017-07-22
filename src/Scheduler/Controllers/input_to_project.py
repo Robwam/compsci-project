@@ -11,7 +11,7 @@ def data_to_events_and_activities(data):
         if row[2] == '': # If no dependencies, add empty list
             row.append([])
         else:
-            row.append(sorted(row[2].split(',')))
+            row.append(sorted(row[2]))
             row[2] = ','.join(row[3])
 
     # Create Events
