@@ -29,7 +29,6 @@ class SchedulePlotCanvas(FigureCanvas):
         FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
-        #FigureCanvas.setSizePolic(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
     def compute_figure(self, data):
@@ -37,14 +36,10 @@ class SchedulePlotCanvas(FigureCanvas):
             return
 
         self.data = data
-        #   # TODO this is test data, should be real, duh
-        #   ylabels, effort, task_dates, pos = plot_gantt.test_data()
         plot_gantt.plot_gantt(self.fig, self.axes, self.data)
 
-
-
+    # Compute and save figure, NOTE backed by matplotlib not pyqt5
     def save_figure(self, path):
-        # Compute and save figure, NOTE backed by matplotlib not pyqt5
-        fig, axes = plt.subplots( nrows=1, ncols=1 )  # create figure & 1 axis
+        fig, axes = plt.subplots(nrows=1, ncols=1)
         plot_gantt.plot_gantt(fig, axes, self.data)
         fig.savefig(path)
