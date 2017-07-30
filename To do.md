@@ -10,7 +10,7 @@
 ## Controllers
 
 
-#Additions:
+## Additions:
 * New schedule button (sets interface to blank, not completely necessary as it can be achieved by restarting the program)
 * Bolder/ larger text for activity name on schedule diagram
 * Perhaps remove dotted lines on schedule diagram as they make things unclear
