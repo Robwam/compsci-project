@@ -182,34 +182,39 @@ class MainController(QWidget):
         self.update_dependeny_listview()
 
         # -- Event Inputs
-        # Create our Horizontal container
-        event_inputs_h_box = QHBoxLayout()
+        # Create our vertical container
+        event_inputs_v_box = QVBoxLayout()
 
         # Create our text boxes
         self.event_name_textbox = QLineEdit(self)
         self.event_duration_textbox = QLineEdit(self)
         self.event_dependencies_textbox = QLineEdit(self)
 
-        # Create two vertical layouts for labels and inputs
-        event_input_labels_v_box = QVBoxLayout()
-        event_input_inputs_v_box = QVBoxLayout()
+        # Create 3 horizontal containers
+        event_name_h_box = QHBoxLayout()
+        event_duration_h_box = QHBoxLayout()
+        event_dependencies_h_box = QHBoxLayout()
 
-        # Add our label and input layouts
-        event_inputs_h_box.addLayout(event_input_labels_v_box)
-        event_inputs_h_box.addLayout(event_input_inputs_v_box)
+        # Add our horizontal containers
+        event_inputs_v_box.addLayout(event_name_h_box)
+        event_inputs_v_box.addLayout(event_duration_h_box)
+        event_inputs_v_box.addLayout(event_dependencies_h_box)
 
         # Create labels and inputs
-        event_input_labels_v_box.addWidget(QLabel("Name:"))
-        event_input_inputs_v_box.addWidget(self.event_name_textbox)
-        event_input_labels_v_box.addWidget(QLabel("Duration:"))
-        event_input_inputs_v_box.addWidget(self.event_duration_textbox)
-        event_input_labels_v_box.addWidget(QLabel("Dependencies:"))
-        event_input_inputs_v_box.addWidget(self.event_dependency_listview)
+        # Whitespace is to make all widgets line up
+        event_name_h_box.addWidget(QLabel("Name:              "))
+        event_name_h_box.addWidget(self.event_name_textbox)
+
+        event_duration_h_box.addWidget(QLabel("Duration:         "))
+        event_duration_h_box.addWidget(self.event_duration_textbox)
+
+        event_dependencies_h_box.addWidget(QLabel("Dependencies:"))
+        event_dependencies_h_box.addWidget(self.event_dependency_listview)
 
         # -- Project controls
         project_controls_v_box = QVBoxLayout()
         project_controls_v_box.addLayout(project_metadata_h_box)
-        project_controls_v_box.addLayout(event_inputs_h_box)
+        project_controls_v_box.addLayout(event_inputs_v_box)
         project_controls_v_box.addWidget(add_event_button)
         project_controls_v_box.addWidget(schedule_button)
 
