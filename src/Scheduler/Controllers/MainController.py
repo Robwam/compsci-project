@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         schedule_image_action.triggered.connect(self.save_schedule_image)
 
         self.setGeometry(300, 300, 800, 600)
-        self.setWindowTitle('Buttons')
+        self.setWindowTitle('Scheduler')
 
         self.main_widget = MainController(self)
         self.setCentralWidget(self.main_widget)
@@ -197,7 +197,6 @@ class MainController(QWidget):
         # Add our label and input layouts
         event_inputs_h_box.addLayout(event_input_labels_v_box)
         event_inputs_h_box.addLayout(event_input_inputs_v_box)
-        event_inputs_h_box.addWidget(add_event_button)
 
         # Create labels and inputs
         event_input_labels_v_box.addWidget(QLabel("Name:"))
@@ -205,7 +204,6 @@ class MainController(QWidget):
         event_input_labels_v_box.addWidget(QLabel("Duration:"))
         event_input_inputs_v_box.addWidget(self.event_duration_textbox)
         event_input_labels_v_box.addWidget(QLabel("Dependencies:"))
-        # TODO event_input_inputs_v_box.addWidget(self.event_dependencies_textbox)
         event_input_inputs_v_box.addWidget(self.event_dependency_listview)
 
         # -- Project controls
@@ -216,12 +214,12 @@ class MainController(QWidget):
         project_controls_v_box.addWidget(schedule_button)
 
         # Main V box
-        self.rightVbox = QVBoxLayout()
-        self.rightVbox.addWidget(self.table_widget)
+        #self.rightVbox = QVBoxLayout()
+        #self.rightVbox.addWidget(self.table_widget)
 
         hbox = QHBoxLayout()
         hbox.addLayout(project_controls_v_box)
-        hbox.addLayout(self.rightVbox)
+        hbox.addWidget(self.table_widget)
 
         self.setLayout(hbox)
 
