@@ -1,6 +1,5 @@
 # To do
 ## Views
-* Name, Duration, Dependencies don't line up
 * Project name has wierd box around it
 
 ## Models
