@@ -218,15 +218,15 @@ class MainController(QWidget):
         project_controls_v_box.addWidget(add_event_button)
         project_controls_v_box.addWidget(schedule_button)
 
-        # Main V box
-        #self.rightVbox = QVBoxLayout()
-        #self.rightVbox.addWidget(self.table_widget)
+        self.v_box_table_widget = QVBoxLayout()
+        self.v_box_table_widget.addWidget(self.table_widget)
+        
+        # Main hbox
+        self.hbox = QHBoxLayout()
+        self.hbox.addLayout(project_controls_v_box)
+        self.hbox.addLayout(self.v_box_table_widget)
 
-        hbox = QHBoxLayout()
-        hbox.addLayout(project_controls_v_box)
-        hbox.addWidget(self.table_widget)
-
-        self.setLayout(hbox)
+        self.setLayout(self.hbox)
 
     def get_event_dependencies(self):
         event_dependencies = []
@@ -291,7 +291,7 @@ class MainController(QWidget):
 
         # Delete old widget
         if self.graph:
-            self.rightVbox.removeWidget(self.graph)
+            self.v_box_table_widget.removeWidget(self.graph)
             self.graph.deleteLater()
 
         # Get worker count
@@ -311,7 +311,7 @@ class MainController(QWidget):
         schedule = self.project.createSchedule(worker_count)
 
         self.graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100, data=schedule)
-        self.rightVbox.addWidget(self.graph)
+        self.v_box_table_widget.addWidget(self.graph)
         self.update()
 
         self.has_been_scheduled = True
