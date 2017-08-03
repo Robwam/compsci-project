@@ -5,23 +5,13 @@ logger = logging.getLogger('root')
 
 # The overarching project that needs to be completed
 # Made up of events happening in sequence
+
 class Project():
     def __init__(self, events, activities):
         self.events = events
         self.activities = activities
 
-    #
-    '''
-    Updates self.events to be in schedulable order
 
-    First check if there is a source event. Then loop through events and
-    add events if their dependencies are members of ordered. This will add
-    events in schedulable order.
-
-    Raises:
-        Exception('No source event')
-        Exception('Events unorderable')
-    '''
     def order_events(self):
         ordered = []
         eventList = self.events
