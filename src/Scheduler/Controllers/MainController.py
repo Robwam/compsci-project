@@ -235,16 +235,38 @@ class MainController(QWidget):
 
     def add_event_from_inputs(self):
         event_name = self.event_name_textbox.text()
-        self.event_name_textbox.setText('')
+        event_duration = self.event_duration_textbox.text()
+        
+        if self.validate_activity():
+            self.event_name_textbox.setText('')
+            self.event_duration_textbox.setText('')
+            self.add_event_table_row([event_name, event_duration, ','.join(self.get_event_dependencies())])
+            self.update_dependeny_listview()
 
-        # TODO verify this is an interger
-        event_duration = int(self.event_duration_textbox.text())
-        self.event_duration_textbox.setText('')
 
-        # Add to table
-        self.add_event_table_row([event_name, event_duration, ','.join(self.get_event_dependencies())])
+    def validate_activity(self):
+        event_name = self.event_name_textbox.text()
+        event_duration = self.event_duration_textbox.text()
 
-        self.update_dependeny_listview()
+        duration_notint = True
+
+        try:
+            int(event_duration)
+            duration_notint = False
+        except ValueError:
+            duration_notint = True
+
+        if event_name in self.event_names:
+            QMessageBox.about(self, "Error", "Activity name is not unique")
+            return False
+        elif event_name == '':
+            QMessageBox.about(self, "Error", "Activity name cannot be empty")
+            return False
+        elif duration_notint:
+            QMessageBox.about(self, "Error", "Duration must be an integer")
+            return False
+        else:
+            return True
 
     def add_event_table_row(self, data, row_overide=None):
         if row_overide is None:
