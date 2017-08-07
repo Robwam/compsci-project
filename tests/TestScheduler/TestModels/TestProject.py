@@ -22,3 +22,34 @@ class TestProject():
 
         assert_raises(Exception, self.test_project_no_source.order_events)
         assert_raises(Exception, self.test_project_unorderable.order_events)
+
+    def test_order_activities(self):
+        self.test_order_activities()
+
+    def test_calcEarlyTimes(self):
+        self.test_calcEarlyTimes()
+
+    def test_activitiesFromEvent(self, ):
+        self.test_activitiesFromEvent()
+
+    def test_calcLateTimes(self):
+        self.test_calcLateTimes()
+
+    def test_calcFloats(self):
+        self.test_calcFloats()
+
+    def test_findCriticalActivties(self):
+        self.test_findCriticalActivties()
+
+    def test_criticalPath(self):
+        self.test_criticalPath()
+
+    def test_calc_min_num_worker(self):
+        self.test_calc_min_num_worker()
+
+    def test_naive_schedule(self, ):
+        self.test_naive_schedule()
+
+    def test_createSchedule(self, ):
+        self.test_createSchedule()
+    
