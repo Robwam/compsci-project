@@ -1,15 +1,23 @@
+from Scheduler.Configuration.database import DB
+from pony.orm import *
+
 import math
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Events connect activities, starting at the source node and ending at the sink node
-class Event():
-    def __init__(self, identifier, dependencies, early_start_time=0, late_start_time=0):
-        self.identifier = identifier
-        self.dependencies = dependencies
-        self.early_start_time = early_start_time
-        self.late_start_time = late_start_time
+class Event(DB.Entity):
+    identifier = Required(str)
+    early_start_time = Required(int, default=0)
+    late_start_time = Required(int, default=0)
+    project = Required('Project')
+
+    dependencies = Set('Activity')
+    activities_from_event = Set('Activity')
+
+    # def __init__(self, identifier, dependencies, early_start_time=0, late_start_time=0):
+    #     self.identifier = identifier
+    #     self.dependencies = dependencies
+    #     self.early_start_time = early_start_time
+    #     self.late_start_time = late_start_time
 
     def __repr__(self):
         if self.early_start_time == math.inf:

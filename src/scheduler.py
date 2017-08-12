@@ -1,20 +1,10 @@
 #!/usr/bin/env python3
 
-from Scheduler.Controllers.MainController import MainWindow
+from Scheduler.Controllers.ProjectListWindow import ProjectListWindow
 
 from PyQt5 import QtWidgets
 import sys
 
-import logging
-
-#
-formatter = logging.Formatter(fmt='%(levelname)s:%(module)s:%(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-logger.addHandler(handler)
-
 app = QtWidgets.QApplication(sys.argv)
-ex = MainWindow()
+ex = ProjectListWindow()
 sys.exit(app.exec_())

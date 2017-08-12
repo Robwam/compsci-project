@@ -1,3 +1,8 @@
+from Scheduler.Configuration.database import DB
+from pony.orm import *
+
+import copy
+
 import math
 
 # The overarching project that needs to be completed
@@ -6,35 +11,27 @@ import math
 '''
 Given events and activities can produce worker assignments
 '''
-class Project():
-
-    '''
-    Initilise the project
-
-    Args:
-        [Event] events - The scheduling project events
-        [Activity] activities - The scheduling project activities
-    '''
-    def __init__(self, events, activities):
-        self.events = events
-        self.activities = activities
+class Project(DB.Entity):
+    name = Optional(str)
+    number_of_workers = Optional(int)
+    activities = Set('Activity')
+    events = Set('Event')
 
     '''
     Updates events property to be ordered
     '''
     def order_events(self):
         ordered = []
-        event_list = self.events
+        event_list = list(self.events)
 
         # Check we have a source event
         source_event = False
         for event in event_list:
-            if event.dependencies == []:
+            if len(event.dependencies) == 0:
                 source_event = True
 
         if not source_event:
             raise Exception('No source event')
-
 
         # Adds events to ordered list in dependency order
         while len(event_list) > 0:
@@ -54,7 +51,7 @@ class Project():
             if event_added == False:
                 raise Exception('Events unorderable')
 
-        self.events = ordered
+        return ordered
 
     '''
     Updates ordered activities a list of activities in order
@@ -63,27 +60,27 @@ class Project():
 
     NOTE this function is trivial in complexity therefore does not require testing
     '''
-    def order_activities(self):
+    def order_activities(self, ordered_events):
         activities = []
-        for event in self.events:
-            activities += self.activities_from_event(event) # Add two lists together
+        for event in ordered_events:
+            activities += event.activities_from_event # Add two lists together
 
-        self.activities = list(reversed(activities))
+        return list(reversed(activities))
 
     '''
     Updates early starts of every event
 
     For each event, finds maximum combination of activity duration and activity sources early starts
     '''
-    def calc_early_start_time(self):
-        for event in self.events:
+    def calc_early_start_time(self, ordered_events):
+        for event in ordered_events:
             max_early_start_time = 0
             for activity in event.dependencies:
                 potential_start = activity.duration + activity.source.early_start_time
                 if potential_start > max_early_start_time:
                     max_early_start_time = potential_start
 
-            event.early_start_time = max_early_start_time
+            event.early_start_time = int(max_early_start_time)
 
     '''
     Returns a list of activities whose source is the event
@@ -108,21 +105,21 @@ class Project():
     Backwards pass for each event, finds minimum combination
     of activity duration and activity target late start
     '''
-    def calc_late_start_time(self):
+    def calc_late_start_time(self, ordered_events):
         # reversed for backwards pass
-        reversed_list = list(reversed(self.events))
+        reversed_list = list(reversed(ordered_events))
 
         # Special cases for sink event
-        self.events[-1].late_start_time = self.events[-1].early_start_time
+        ordered_events[-1].late_start_time = ordered_events[-1].early_start_time
 
         for event in reversed_list[1:]:
             min_late_start_time = math.inf
-            for activity in self.activities_from_event(event):
+            for activity in event.activities_from_event:
                 potential_late_start_time = activity.target.late_start_time - activity.duration
                 if potential_late_start_time < min_late_start_time:
                     min_late_start_time = potential_late_start_time
 
-            event.late_start_time = min_late_start_time
+            event.late_start_time = int(min_late_start_time)
 
     '''
     Calculates and updates float time for every activity
@@ -131,7 +128,7 @@ class Project():
     '''
     def calc_floats(self):
         for activity in self.activities:
-            activity.float_time = activity.target.late_start_time - activity.duration - activity.source.early_start_time
+            activity.float_time = int(activity.target.late_start_time - activity.duration - activity.source.early_start_time)
 
     '''
     Updates critical_activities property with the crtical activities
@@ -148,8 +145,7 @@ class Project():
             if activity.float_time == 0:
                 critical_activities.append(activity)
 
-        self.critical_activities = critical_activities
-        self.critical_path_length = sum([a.duration for a in critical_activities])
+        return sum([a.duration for a in critical_activities])
 
     '''
     Returns the minimum number of workers
@@ -159,9 +155,9 @@ class Project():
     Returns:
         Int - The minimum number of workers
     '''
-    def calc_min_num_worker(self):
+    def calc_min_num_worker(self, critical_path_length):
         total_time = sum([a.duration for a in self.activities])
-        return math.ceil(total_time / self.critical_path_length)
+        return math.ceil(total_time / critical_path_length)
 
     '''
     Calculates a naive schedule using bin packing
@@ -172,9 +168,9 @@ class Project():
     Returns:
         Dict - A dictionary keyed on worker id with values being the activities they are assigned
     '''
-    def naive_schedule(self, num_workers):
+    def naive_schedule(self, num_workers, ordered_activities):
         # Filter out activities with no duration (i.e. dummies)
-        activities = list(filter(lambda activity: activity.duration != 0, self.activities))
+        activities = list(filter(lambda activity: activity.duration != 0, ordered_activities))
 
         worker_activities = {}
 
@@ -239,17 +235,18 @@ class Project():
         Dict - The worker schedule assignments
     '''
     def create_schedule(self, workers=None):
-        self.order_events()
-        self.calc_early_start_time()
-        self.calc_late_start_time()
-        self.calc_floats()
-        self.find_critical_activities()
-        self.order_activities()
+        ordered_events = self.order_events()
+        ordered_activities = self.order_activities(ordered_events)
 
-        min_num_workers = self.calc_min_num_worker()
+        self.calc_early_start_time(ordered_events)
+        self.calc_late_start_time(ordered_events)
+        self.calc_floats()
+
+        critical_path_length = self.find_critical_activities()
+        min_num_workers = self.calc_min_num_worker(critical_path_length)
 
         # Set the worker count to the minimum number of workers if
         if not workers or workers > min_num_workers:
             workers = min_num_workers
 
-        return self.naive_schedule(workers)
+        return self.naive_schedule(workers, ordered_activities)
