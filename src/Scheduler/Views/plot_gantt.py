@@ -34,8 +34,5 @@ def plot_gantt(fig, ax, data):
     ax.set_yticklabels(['worker %i' % (i+1) for i in data.keys()], rotation=90)
     ax.invert_yaxis()
 
-    # Format grid
-    ax.grid(color = 'g', linestyle = ':')
-
     ax.set_title('Schedule')
     ax.set_xlabel('Time (hours)')
