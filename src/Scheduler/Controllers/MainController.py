@@ -326,7 +326,7 @@ class MainController(QWidget):
                 return
 
         self.project = Project(events, activities)
-        schedule = self.project.createSchedule(worker_count)
+        schedule = self.project.create_schedule(worker_count)
 
         self.graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100, data=schedule)
         self.v_box_table_widget.addWidget(self.graph)

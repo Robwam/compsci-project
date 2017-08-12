@@ -1,12 +1,20 @@
 import math
 
-import logging
-logger = logging.getLogger('root')
-
 # The overarching project that needs to be completed
 # Made up of events happening in sequence
 
+'''
+Given events and activities can produce worker assignments
+'''
 class Project():
+
+    '''
+    Initilise the project
+
+    Args:
+        [Event] events - The scheduling project events
+        [Activity] activities - The scheduling project activities
+    '''
     def __init__(self, events, activities):
         self.events = events
         self.activities = activities
@@ -16,11 +24,11 @@ class Project():
     '''
     def order_events(self):
         ordered = []
-        eventList = self.events
+        event_list = self.events
 
         # Check we have a source event
         source_event = False
-        for event in eventList:
+        for event in event_list:
             if event.dependencies == []:
                 source_event = True
 
@@ -28,39 +36,37 @@ class Project():
             raise Exception('No source event')
 
 
-        while len(eventList) > 0:
-            eventAdded = False
-            for event in eventList:
-                addEvent = True
+        # Adds events to ordered list in dependency order
+        while len(event_list) > 0:
+            event_added = False
+            for event in event_list:
+                add_event = True
                 for dep in event.dependencies:
                     if dep.source not in ordered:
-                        addEvent = False
+                        add_event = False
                         break
 
-                if addEvent:
+                if add_event:
                     ordered.append(event)
-                    eventList.remove(event)
-                    eventAdded = True
+                    event_list.remove(event)
+                    event_added = True
 
-            if eventAdded == False:
+            if event_added == False:
                 raise Exception('Events unorderable')
 
         self.events = ordered
 
     '''
-    Returns a list of activites in order
+    Updates ordered activities a list of activities in order
 
-    Returns:
-        [Activity] - Activities in order
+    NOTE: Assumes events are in order
     '''
-    def order_activites(self):
-        self.order_events()
-
+    def order_activities(self):
         activities = []
         for event in self.events:
             activities += self.activities_from_event(event) # Add two lists together
 
-        return reversed(activities)
+        self.activities = list(reversed(activities))
 
     '''
     Updates early starts of every event
@@ -128,7 +134,7 @@ class Project():
     '''
     Updates critical_activities property with the crtical activities
 
-    Critical activites are activites with a float of 0
+    Critical activities are activities with a float of 0
 
     TODO these activities are likely out of order and need to be ordered
 
@@ -146,7 +152,7 @@ class Project():
     '''
     Returns the minimum number of workers
 
-    Devides total sum of duration of activites by length of criticle path and rounds up
+    Devides total sum of duration of activities by length of criticle path and rounds up
 
     Returns:
         Int - The minimum number of workers
@@ -155,25 +161,32 @@ class Project():
         total_time = sum([a.duration for a in self.activities])
         return math.ceil(total_time / self.critical_path_length)
 
+    '''
+    Calculates a naive schedule using bin packing
+
+    Args:
+        Int num_workers - The number of workers to use in the schedule
+
+    Returns:
+        Dict - A dictionary keyed on worker id with values being the activities they are assigned
+    '''
     def naive_schedule(self, num_workers):
-        # NOTE these should already be in order!
-        jobs = self.order_activites()
+        # Filter out activities with no duration (i.e. dummies)
+        activities = list(filter(lambda activity: activity.duration != 0, self.activities))
 
-        jobs = list(filter(lambda j: j.duration != 0, jobs))
-
-        workers_jobs = {}
+        worker_activities = {}
 
         for worker in range(0, num_workers):
-            workers_jobs[worker] = []
+            worker_activities[worker] = []
 
-        while len(jobs) > 0:
-            for worker in workers_jobs:
-                if len(jobs) > 0:
-                    workers_jobs[worker].append(jobs.pop())
+        while len(activities) > 0:
+            for worker_id in worker_activities:
+                if len(activities) > 0:
+                    worker_activities[worker_id].append(activities.pop())
                 else:
                     break
 
-        return workers_jobs
+        return worker_activities
 
     '''
     Returns an activity corresponding to its name
@@ -207,12 +220,25 @@ class Project():
 
         return None
 
-    def createSchedule(self, workers=None):
+    '''
+    Main schedule function, does scheduling actions in order and returns
+    worker schedule assignments
+
+    Args:
+        Int workers - The number of workers. If none or if surplus
+                      to requirement we use the min based on critical
+                      activty length.
+
+    Returns:
+        Dict - The worker schedule assignments
+    '''
+    def create_schedule(self, workers=None):
         self.order_events()
         self.calc_early_start_time()
         self.calc_late_start_time()
         self.calc_floats()
         self.find_critical_activities()
+        self.order_activities()
 
         min_num_workers = self.calc_min_num_worker()
 

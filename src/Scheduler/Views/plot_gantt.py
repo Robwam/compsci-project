@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 def plot_gantt(fig, ax, data):
-    for worker_id, worker_activites in data.items():
+    for worker_id, worker_activities in data.items():
         left = 0
-        for activity in worker_activites:
+        for activity in worker_activities:
             if activity.source.early_start_time > left:
                 left = activity.source.early_start_time
 

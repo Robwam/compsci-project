@@ -1,7 +1,7 @@
 import TestScheduler.mock_data as mock_data
 
 from Scheduler.Models.Project import Project
-from Scheduler.Models.Activity import Activity
+from Scheduler.Models.Activity import Activity, DummyActivity
 
 from nose.tools import assert_equal, assert_raises
 
@@ -14,8 +14,8 @@ class TestProject():
     # Called automatically by nose
     def setUp(self):
         self.test_project = Project(copy.copy(mock_data.m1_events), copy.copy(mock_data.m1_activities))
-        self.test_project_no_source = Project(copy.deepcopy(mock_data.no_source_events), copy.deepcopy(mock_data.no_source_activities))
-        self.test_project_unorderable = Project(copy.deepcopy(mock_data.unorderable_events), copy.deepcopy(mock_data.unorderable_activities))
+        self.test_project_no_source = Project(copy.copy(mock_data.no_source_events), copy.copy(mock_data.no_source_activities))
+        self.test_project_unorderable = Project(copy.copy(mock_data.unorderable_events), copy.copy(mock_data.unorderable_activities))
 
     # Testing algorithm only looks at 1 correct set, however there may be multiple correct sets
     def test_order_events(self):
@@ -40,11 +40,11 @@ class TestProject():
 
     # Test correct float_times for all activities
     def test_calc_floats(self):
-        # Mock events and activites
-        event1 = copy.deepcopy(mock_data.m1_event1)
+        # Mock events and activities
+        event1 = copy.copy(mock_data.m1_event1)
         event1.early_start_time = 4
 
-        event2 = copy.deepcopy(mock_data.m1_event3)
+        event2 = copy.copy(mock_data.m1_event3)
         event2.late_start_time = 7
 
         self.test_project.activities = [Activity('Activity', 2, event1, event2)]
@@ -94,30 +94,35 @@ class TestProject():
 
         assert_equal(self.test_project.calc_min_num_worker(), 2)
 
-    '''
-    def test_order_activities(self):
-        # self.test_project.order_activities()
+    def test_naive_schedule_single_worker(self):
+        activity1 = Activity('Activity 1', 2, None, None)
+        activity2 = DummyActivity('Activity 2', None, None)
+        activity3 = Activity('Activity 3', 7, None, None)
 
-    def test_calc_early_start_time(self):
-        self.test_project.calc_early_start_time()
+        expected = {
+            0: [activity3, activity1]
+        }
 
-    def test_calc_late_start_time(self):
-        self.test_project.calc_late_start_time()
+        self.test_project.activities = [activity1, activity2, activity3]
 
+        test_worker_count = 1
+        result = self.test_project.naive_schedule(test_worker_count)
 
+        assert_equal(result, expected)
 
-    def test_findCriticalActivties(self):
-        self.test_project.findcritical_activities()
+    def test_naive_schedule_two_workers(self):
+        activity1 = Activity('Activity 1', 2, None, None)
+        activity2 = DummyActivity('Activity 2', None, None)
+        activity3 = Activity('Activity 3', 7, None, None)
 
-    def test_criticalPath(self):
-        self.test_project.criticalPath()
+        expected = {
+            0: [activity3],
+            1: [activity1]
+        }
 
-    def test_calc_min_num_worker(self):
-        self.test_project.calc_min_num_worker()
+        self.test_project.activities = [activity1, activity2, activity3]
 
-    def test_naive_schedule(self):
-        self.test_project.naive_schedule()
+        test_worker_count = 2
+        result = self.test_project.naive_schedule(test_worker_count)
 
-    def test_createSchedule(self):
-        self.test_project.createSchedule()
-    '''
+        assert_equal(result, expected)
