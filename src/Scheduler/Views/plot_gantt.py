@@ -16,8 +16,8 @@ def plot_gantt(fig, ax, data):
     for worker_id, worker_activites in data.items():
         left = 0
         for activity in worker_activites:
-            if activity.source.earlyStart > left:
-                left = activity.source.earlyStart
+            if activity.source.early_start_time > left:
+                left = activity.source.early_start_time
 
             # Get label with character limit
             name = activity.name[0:min(15, len(activity.name))]

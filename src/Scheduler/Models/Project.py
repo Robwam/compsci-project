@@ -54,23 +54,29 @@ class Project():
 
         return reversed(activities)
 
-    def calcEarlyTimes(self):
-        for event in self.events:
-            maxEarlyStart = 0
-            for activity in event.dependencies:
-                potentialStart = activity.duration + activity.source.earlyStart
-                if potentialStart > maxEarlyStart:
-                    maxEarlyStart = potentialStart
+    '''
+    Updates early starts of every event
 
-            event.earlyStart = maxEarlyStart
+    For each event, finds maximum combination of activity duration and activity sources early stars
+    '''
+    def calc_early_start_time(self):
+        for event in self.events:
+            max_early_start_time = 0
+            for activity in event.dependencies:
+                potential_start = activity.duration + activity.source.early_start_time
+                if potential_start > max_early_start_time:
+                    max_early_start_time = potential_start
+
+            event.early_start_time = max_early_start_time
 
     '''
     Returns a list of activities whose source is the event
 
     Args:
-      Event event: The event
-    Returns
-      [Activity]: The activities from this event
+      Event event - The event
+
+    Returns:
+      [Activity] - The activities from this event
     '''
     def activities_from_event(self, event):
         out_activities = []
@@ -85,7 +91,7 @@ class Project():
         reversedList = list(reversed(self.events))
 
         #special cases for sink event
-        self.events[-1].lateStart = self.events[-1].earlyStart
+        self.events[-1].lateStart = self.events[-1].early_start_time
 
         for event in reversedList[1:]:
             min_lateStart = math.inf
@@ -98,10 +104,12 @@ class Project():
 
     '''
     Calculates and updates float time for every activity
+
+    NOTE events should have lateStart and early_start_time already calculated
     '''
     def calc_floats(self):
         for activity in self.activities:
-            activity.float_time = activity.target.lateStart - activity.duration - activity.source.earlyStart
+            activity.float_time = activity.target.lateStart - activity.duration - activity.source.early_start_time
 
     def findCriticalActivities(self):
         criticalActivities = []
@@ -171,9 +179,41 @@ class Project():
 
         return workers_jobs
 
+    '''
+    Returns an activity corresponding to its name
+
+    Args:
+      Str activity_name - The name of the activity
+
+    Returns:
+      Activity - The corresponding activity
+    '''
+    def activity_by_name(self, activity_name):
+        for activity in self.activities:
+            if activity.name == activity_name:
+                return activity
+
+        return None
+
+    '''
+    Returns an event corresponding to its identifier
+
+    Args:
+      Str identifier - The name of the event
+
+    Returns:
+      Event - The corresponding event
+    '''
+    def event_by_identitifer(self, identifier):
+        for event in self.events:
+            if event.identifier == identifier:
+                return event
+
+        return None
+
     def createSchedule(self, workers=None):
         self.order_events()
-        self.calcEarlyTimes()
+        self.calc_early_start_time()
         self.calcLateTimes()
         self.calc_floats()
         self.findCriticalActivities()
