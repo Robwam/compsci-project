@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from Scheduler.Controllers.MainController import MainWindow
 
 from PyQt5 import QtWidgets

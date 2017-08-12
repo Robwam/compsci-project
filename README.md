@@ -14,3 +14,8 @@ $ git clone https://github.com/Robwam/compsci-project.git
 $ cd compsci-project
 $ pip install pyqt5 matplotlib nosetests
 ```
+
+## Running
+`$ ./src/scheduler.py`
+### Tests
+`$ nosetests`
