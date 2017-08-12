@@ -50,7 +50,7 @@ class Project():
 
         activities = []
         for event in self.events:
-            activities += self.activitiesFromEvent(event) # Add two lists together
+            activities += self.activities_from_event(event) # Add two lists together
 
         return reversed(activities)
 
@@ -64,7 +64,15 @@ class Project():
 
             event.earlyStart = maxEarlyStart
 
-    def activitiesFromEvent(self, event):
+    '''
+    Returns a list of activities whose source is the event
+
+    Args:
+      Event event: The event
+    Returns
+      [Activity]: The activities from this event
+    '''
+    def activities_from_event(self, event):
         out_activities = []
         for activity in self.activities:
             if activity.source == event:
@@ -81,21 +89,24 @@ class Project():
 
         for event in reversedList[1:]:
             min_lateStart = math.inf
-            for activity in self.activitiesFromEvent(event):
+            for activity in self.activities_from_event(event):
                 potentialLateTime = activity.target.lateStart - activity.duration
                 if potentialLateTime < min_lateStart:
                     min_lateStart = potentialLateTime
 
             event.lateStart = min_lateStart
 
-    def calcFloats(self):
+    '''
+    Calculates and updates float time for every activity
+    '''
+    def calc_floats(self):
         for activity in self.activities:
-            activity.floatTime = activity.target.lateStart - activity.duration - activity.source.earlyStart
+            activity.float_time = activity.target.lateStart - activity.duration - activity.source.earlyStart
 
     def findCriticalActivities(self):
         criticalActivities = []
         for activity in self.activities:
-            if activity.floatTime == 0:
+            if activity.float_time == 0:
                 criticalActivities.append(activity)
 
         self.criticalActivities = criticalActivities
@@ -117,7 +128,7 @@ class Project():
                 last = True
 
             # Look at all out activities, choose a criticle one
-            for activity in self.activitiesFromEvent(nextEvent):
+            for activity in self.activities_from_event(nextEvent):
                 if activity in self.criticalActivities:
                     activities_path.append(activity)
                     nextEvent = activity.target
@@ -125,7 +136,7 @@ class Project():
 
             events_path.append(nextEvent)
 
-        for activity in self.activitiesFromEvent(nextEvent):
+        for activity in self.activities_from_event(nextEvent):
             if activity in self.criticalActivities:
                 activities_path.append(activity)
 
@@ -164,7 +175,7 @@ class Project():
         self.order_events()
         self.calcEarlyTimes()
         self.calcLateTimes()
-        self.calcFloats()
+        self.calc_floats()
         self.findCriticalActivities()
         self.criticalPath()
 

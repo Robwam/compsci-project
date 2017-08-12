@@ -3,12 +3,12 @@ logger = logging.getLogger(__name__)
 
 # Activities are tasks that come from an event and lead to an event
 class Activity():
-    def __init__(self, name, duration, source=None, target=None, floatTime=0):
+    def __init__(self, name, duration, source=None, target=None, float_time=0):
         self.name = name
         self.duration = duration
         self.source = source
         self.target = target
-        self.floatTime = floatTime
+        self.float_time = float_time
 
     def __repr__(self):
         if (self.source and self.target):
