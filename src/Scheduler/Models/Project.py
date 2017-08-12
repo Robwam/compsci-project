@@ -60,6 +60,8 @@ class Project():
     Updates ordered activities a list of activities in order
 
     NOTE: Assumes events are in order
+
+    NOTE this function is trivial in complexity therefore does not require testing
     '''
     def order_activities(self):
         activities = []
@@ -196,6 +198,8 @@ class Project():
 
     Returns:
         Activity - The corresponding activity
+
+    NOTE this function is trivial in complexity therefore does not require testing
     '''
     def activity_by_name(self, activity_name):
         for activity in self.activities:
@@ -212,6 +216,8 @@ class Project():
 
     Returns:
         Event - The corresponding event
+
+    NOTE this function is trivial in complexity therefore does not require testing
     '''
     def event_by_identitifer(self, identifier):
         for event in self.events:

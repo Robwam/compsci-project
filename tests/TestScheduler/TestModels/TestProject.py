@@ -105,8 +105,7 @@ class TestProject():
 
         self.test_project.activities = [activity1, activity2, activity3]
 
-        test_worker_count = 1
-        result = self.test_project.naive_schedule(test_worker_count)
+        result = self.test_project.naive_schedule(1) # 1 worker
 
         assert_equal(result, expected)
 
@@ -122,7 +121,26 @@ class TestProject():
 
         self.test_project.activities = [activity1, activity2, activity3]
 
-        test_worker_count = 2
-        result = self.test_project.naive_schedule(test_worker_count)
+        result = self.test_project.naive_schedule(2) # 2 workers
 
         assert_equal(result, expected)
+
+    def test_integration_create_schedule_two_workers(self):
+        expected = {
+            0: [
+                self.test_project.activity_by_name('A'),
+                self.test_project.activity_by_name('C'),
+                self.test_project.activity_by_name('G'),
+                self.test_project.activity_by_name('F')],
+            1: [self.test_project.activity_by_name('B'),
+                self.test_project.activity_by_name('D'),
+                self.test_project.activity_by_name('E'),
+                self.test_project.activity_by_name('H')]
+        }
+
+        result = self.test_project.create_schedule(2) # two worekrs
+        assert_equal(result, expected)
+
+    def test_integration_create_schedule_surplus_to_requirement(self):
+        result = self.test_project.create_schedule(5) # five worekrs
+        assert_equal(len(result.keys()), 2)
