@@ -141,38 +141,7 @@ class Project():
                 critical_activities.append(activity)
 
         self.critical_activities = critical_activities
-
-    # NOTE: This only finds a single criticle path
-    # NOTE: This hangs if there is no criticle path
-    def criticalPath(self):
-        events_path = []
-        activities_path = []
-        nextEvent = self.events[0]
-        events_path.append(nextEvent)
-        last = False
-        while (not last):
-
-
-            # Check if this is the sink event, if so break
-            if nextEvent == self.events[-1]:
-                last = True
-
-            # Look at all out activities, choose a criticle one
-            for activity in self.activities_from_event(nextEvent):
-                if activity in self.critical_activities:
-                    activities_path.append(activity)
-                    nextEvent = activity.target
-                    break
-
-            events_path.append(nextEvent)
-
-        for activity in self.activities_from_event(nextEvent):
-            if activity in self.critical_activities:
-                activities_path.append(activity)
-
-        self.critcle_activities_path = activities_path
-        self.critcle_events_path = events_path
-        self.critical_path_length = sum([a.duration for a in self.critcle_activities_path])
+        self.critical_path_length = sum([a.duration for a in critical_activities])
 
     '''
     Returns the minimum number of workers
@@ -244,7 +213,6 @@ class Project():
         self.calc_late_start_time()
         self.calc_floats()
         self.find_critical_activities()
-        self.criticalPath()
 
         min_num_workers = self.calc_min_num_worker()
 
