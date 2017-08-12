@@ -5,11 +5,11 @@ logger = logging.getLogger(__name__)
 
 # Events connect activities, starting at the source node and ending at the sink node
 class Event():
-    def __init__(self, identifier, dependencies, early_start_time=0, lateStart=0):
+    def __init__(self, identifier, dependencies, early_start_time=0, late_start_time=0):
         self.identifier = identifier
         self.dependencies = dependencies
         self.early_start_time = early_start_time
-        self.lateStart = lateStart
+        self.late_start_time = late_start_time
 
     def __repr__(self):
         if self.early_start_time == math.inf:
@@ -17,9 +17,9 @@ class Event():
         else:
             early_start = str(self.early_start_time)
 
-        if self.lateStart == math.inf:
-            lateStart = 'inf'
+        if self.late_start_time == math.inf:
+            late_start_time = 'inf'
         else:
-            lateStart = str(self.lateStart)
+            late_start_time = str(self.late_start_time)
 
-        return "%s [%s|%s, [%s]]" % (self.identifier, early_start, lateStart, ','.join([d.name for d in self.dependencies])) # - %i - %s" % (self.name, self.duration, self.dependencies)
+        return "%s [%s|%s, [%s]]" % (self.identifier, early_start, late_start_time, ','.join([d.name for d in self.dependencies])) # - %i - %s" % (self.name, self.duration, self.dependencies)

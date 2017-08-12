@@ -11,7 +11,9 @@ class Project():
         self.events = events
         self.activities = activities
 
-
+    '''
+    Updates events property to be ordered
+    '''
     def order_events(self):
         ordered = []
         eventList = self.events
@@ -45,6 +47,12 @@ class Project():
 
         self.events = ordered
 
+    '''
+    Returns a list of activites in order
+
+    Returns:
+        [Activity] - Activities in order
+    '''
     def order_activites(self):
         self.order_events()
 
@@ -57,7 +65,7 @@ class Project():
     '''
     Updates early starts of every event
 
-    For each event, finds maximum combination of activity duration and activity sources early stars
+    For each event, finds maximum combination of activity duration and activity sources early starts
     '''
     def calc_early_start_time(self):
         for event in self.events:
@@ -73,10 +81,10 @@ class Project():
     Returns a list of activities whose source is the event
 
     Args:
-      Event event - The event
+        Event event - The event
 
     Returns:
-      [Activity] - The activities from this event
+        [Activity] - The activities from this event
     '''
     def activities_from_event(self, event):
         out_activities = []
@@ -86,39 +94,53 @@ class Project():
 
         return out_activities
 
-    def calcLateTimes(self):
+    '''
+    Updates late start times of every event
+
+    Backwards pass for each event, finds minimum combination
+    of activity duration and activity target late start
+    '''
+    def calc_late_start_time(self):
         # reversed for backwards pass
-        reversedList = list(reversed(self.events))
+        reversed_list = list(reversed(self.events))
 
-        #special cases for sink event
-        self.events[-1].lateStart = self.events[-1].early_start_time
+        # Special cases for sink event
+        self.events[-1].late_start_time = self.events[-1].early_start_time
 
-        for event in reversedList[1:]:
-            min_lateStart = math.inf
+        for event in reversed_list[1:]:
+            min_late_start_time = math.inf
             for activity in self.activities_from_event(event):
-                potentialLateTime = activity.target.lateStart - activity.duration
-                if potentialLateTime < min_lateStart:
-                    min_lateStart = potentialLateTime
+                potential_late_start_time = activity.target.late_start_time - activity.duration
+                if potential_late_start_time < min_late_start_time:
+                    min_late_start_time = potential_late_start_time
 
-            event.lateStart = min_lateStart
+            event.late_start_time = min_late_start_time
 
     '''
     Calculates and updates float time for every activity
 
-    NOTE events should have lateStart and early_start_time already calculated
+    NOTE events should have late_start_time and early_start_time already calculated
     '''
     def calc_floats(self):
         for activity in self.activities:
-            activity.float_time = activity.target.lateStart - activity.duration - activity.source.early_start_time
+            activity.float_time = activity.target.late_start_time - activity.duration - activity.source.early_start_time
 
-    def findCriticalActivities(self):
-        criticalActivities = []
+    '''
+    Updates critical_activities property with the crtical activities
+
+    Critical activites are activites with a float of 0
+
+    TODO these activities are likely out of order and need to be ordered
+
+    NOTE this function is trivial in complexity therefore does not require testing
+    '''
+    def find_critical_activities(self):
+        critical_activities = []
         for activity in self.activities:
             if activity.float_time == 0:
-                criticalActivities.append(activity)
+                critical_activities.append(activity)
 
-        self.criticalActivities = criticalActivities
-        # these activities are likely out of order and need to be ordered
+        self.critical_activities = critical_activities
 
     # NOTE: This only finds a single criticle path
     # NOTE: This hangs if there is no criticle path
@@ -137,7 +159,7 @@ class Project():
 
             # Look at all out activities, choose a criticle one
             for activity in self.activities_from_event(nextEvent):
-                if activity in self.criticalActivities:
+                if activity in self.critical_activities:
                     activities_path.append(activity)
                     nextEvent = activity.target
                     break
@@ -145,19 +167,24 @@ class Project():
             events_path.append(nextEvent)
 
         for activity in self.activities_from_event(nextEvent):
-            if activity in self.criticalActivities:
+            if activity in self.critical_activities:
                 activities_path.append(activity)
 
         self.critcle_activities_path = activities_path
         self.critcle_events_path = events_path
-        self.criticle_path_length = sum([a.duration for a in self.critcle_activities_path])
+        self.critical_path_length = sum([a.duration for a in self.critcle_activities_path])
 
+    '''
+    Returns the minimum number of workers
+
+    Devides total sum of duration of activites by length of criticle path and rounds up
+
+    Returns:
+        Int - The minimum number of workers
+    '''
     def calc_min_num_worker(self):
         total_time = sum([a.duration for a in self.activities])
-        return math.ceil(total_time / self.criticle_path_length)
-
-    def calc_schedule(self):
-        pass
+        return math.ceil(total_time / self.critical_path_length)
 
     def naive_schedule(self, num_workers):
         # NOTE these should already be in order!
@@ -183,10 +210,10 @@ class Project():
     Returns an activity corresponding to its name
 
     Args:
-      Str activity_name - The name of the activity
+        Str activity_name - The name of the activity
 
     Returns:
-      Activity - The corresponding activity
+        Activity - The corresponding activity
     '''
     def activity_by_name(self, activity_name):
         for activity in self.activities:
@@ -199,10 +226,10 @@ class Project():
     Returns an event corresponding to its identifier
 
     Args:
-      Str identifier - The name of the event
+        Str identifier - The name of the event
 
     Returns:
-      Event - The corresponding event
+        Event - The corresponding event
     '''
     def event_by_identitifer(self, identifier):
         for event in self.events:
@@ -214,14 +241,14 @@ class Project():
     def createSchedule(self, workers=None):
         self.order_events()
         self.calc_early_start_time()
-        self.calcLateTimes()
+        self.calc_late_start_time()
         self.calc_floats()
-        self.findCriticalActivities()
+        self.find_critical_activities()
         self.criticalPath()
 
         min_num_workers = self.calc_min_num_worker()
 
-        # Set the worker count to the miniumum number of workers if
+        # Set the worker count to the minimum number of workers if
         if not workers or workers > min_num_workers:
             workers = min_num_workers
 

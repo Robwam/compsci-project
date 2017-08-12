@@ -22,24 +22,20 @@ class TestProject():
         self.test_project.order_events()
         assert_equal([o.identifier for o in self.test_project.events], ['source','A','C','B,D','C,E','F,G','sink'])
 
+        # Test validation errors
         assert_raises(Exception, self.test_project_no_source.order_events)
         assert_raises(Exception, self.test_project_unorderable.order_events)
 
     # Test nothing returned from sink event
     def test_activities_from_event_no_activities_from_sink(self):
         result = self.test_project.activities_from_event(mock_data.m1_event6)
+        # Edge case
         assert_equal(result, [])
 
     # Test activities F and G are returned from m1_event5
     def test_activities_from_event_non_empty_result(self):
-        # As the source event of C and D is m1_event1
-        #print(self.test_project.event_by_identitifer('A'))
-        #
-        # print(self.test_project.events)
-        # print(self.test_project.event_by_identitifer('A'))
-        # print(self.test_project.activities)
-
         result = self.test_project.activities_from_event(self.test_project.event_by_identitifer('A'))
+        # Normal case
         assert_equal(result, [self.test_project.activity_by_name('C'), self.test_project.activity_by_name('D')])
 
     # Test correct float_times for all activities
@@ -49,46 +45,54 @@ class TestProject():
         event1.early_start_time = 4
 
         event2 = copy.deepcopy(mock_data.m1_event3)
-        event2.lateStart = 7
+        event2.late_start_time = 7
 
         self.test_project.activities = [Activity('Activity', 2, event1, event2)]
 
         self.test_project.calc_floats()
 
+        # Normal case
         assert_equal(self.test_project.activities[0].float_time, 1)
 
     def test_calc_early_start_time(self):
         self.test_project.calc_early_start_time()
 
+        # Edge case
         assert_equal(self.test_project.event_by_identitifer('source').early_start_time, 0)
 
+        # Nomral case
         assert_equal(self.test_project.event_by_identitifer('B,D').early_start_time, 6)
 
+        # Dummy case
         assert_equal(self.test_project.event_by_identitifer('C,E').early_start_time, 9)
 
+        # Edge case
         assert_equal(self.test_project.event_by_identitifer('sink').early_start_time, 16)
 
-    # TODO make this an integration test by running calcLateTimes & calc_early_start_time
-    # # Test correct float_times for all activities
-    # def test_calc_floats(self):
-    #     # Source/Sink are edge cases, G, D normal cases
-    #     # Correct floats hand calculated
-    #     self.test_project.calc_floats()
-    #
-    #     for a in self.test_project.activities:
-    #         print(a, a.float_time)
-    #
-    #     # Source Activity = 0
-    #     assert_equal(self.test_project.activities[0].float_time, 0)
-    #
-    #     # Sink Activity = 0
-    #     assert_equal(self.test_project.activities[-1].float_time, 0)
-    #
-    #     # Activity G = 8
-    #     assert_equal(self.test_project.activities[6].float_time, 8)
-    #
-    #     # Activity D = 0
-    #     assert_equal(self.test_project.activities[3], 0)
+    def test_calc_late_start_time(self):
+        self.test_project.calc_late_start_time()
+
+        # Edge case
+        assert_equal(self.test_project.event_by_identitifer('source').late_start_time, 0)
+
+        # Nomral case
+        assert_equal(self.test_project.event_by_identitifer('B,D').late_start_time, 6)
+
+        # Dummy case
+        assert_equal(self.test_project.event_by_identitifer('C').late_start_time, 9)
+
+        # Edge case
+        assert_equal(self.test_project.event_by_identitifer('sink').late_start_time, 16)
+
+
+    def test_calc_min_num_worker(self):
+        self.test_project.critical_path_length = 10
+        self.test_project.activities = [Activity('Activity', 2, None, None),
+                                        Activity('Activity', 5, None, None),
+                                        Activity('Activity', 7, None, None)]
+
+
+        assert_equal(self.test_project.calc_min_num_worker(), 2)
 
     '''
     def test_order_activities(self):
@@ -97,13 +101,13 @@ class TestProject():
     def test_calc_early_start_time(self):
         self.test_project.calc_early_start_time()
 
-    def test_calcLateTimes(self):
-        self.test_project.calcLateTimes()
+    def test_calc_late_start_time(self):
+        self.test_project.calc_late_start_time()
 
 
 
     def test_findCriticalActivties(self):
-        self.test_project.findCriticalActivities()
+        self.test_project.findcritical_activities()
 
     def test_criticalPath(self):
         self.test_project.criticalPath()
