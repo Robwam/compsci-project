@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         self.show()
 
     def save_schedule_image(self):
-        # Error if no schedule diagram
+        # Error if no schedule diagram
         if not self.main_widget.has_been_scheduled:
             QMessageBox.about(self, "Error", "Please schedule before attempting to save")
             return
@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
         # TODO clear the table
         self.main_widget.table_widget.setRowCount(0)
 
-        # Load data into table
+        # Load data into table
         for row in data['data']:
             row[2] = ','.join(row[2])
             self.main_widget.add_event_table_row(row)
@@ -125,7 +125,7 @@ class MainController(QWidget):
                 self.add_event_from_inputs()
 
                 self.add_event_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
-                # TODO NOTE we are not setting the dependency
+                # TODO NOTE we are not setting the dependency
 
 
     def update_dependeny_listview(self):
@@ -155,8 +155,9 @@ class MainController(QWidget):
         project_metadata_h_box = QHBoxLayout()
 
         # Create our text boxes
-        self.project_name_textbox = QLineEdit(self)
-        self.project_worker_count_textbox = QLineEdit(self)
+        # TODO QLineEdits are causing the input in the top right
+        self.project_name_textbox = QLineEdit()
+        self.project_worker_count_textbox = QLineEdit()
 
         # Create two vertical layouts for labels and inputs
         project_metadata_labels_v_box = QVBoxLayout()
@@ -181,9 +182,9 @@ class MainController(QWidget):
         event_inputs_v_box = QVBoxLayout()
 
         # Create our text boxes
-        self.event_name_textbox = QLineEdit(self)
-        self.event_duration_textbox = QLineEdit(self)
-        self.event_dependencies_textbox = QLineEdit(self)
+        self.event_name_textbox = QLineEdit()
+        self.event_duration_textbox = QLineEdit()
+        self.event_dependencies_textbox = QLineEdit()
 
         # Create 3 horizontal containers
         event_name_h_box = QHBoxLayout()
@@ -215,7 +216,7 @@ class MainController(QWidget):
 
         self.v_box_table_widget = QVBoxLayout()
         self.v_box_table_widget.addWidget(self.table_widget)
-        
+
         # Main hbox
         self.hbox = QHBoxLayout()
         self.hbox.addLayout(project_controls_v_box)
@@ -236,7 +237,7 @@ class MainController(QWidget):
     def add_event_from_inputs(self):
         event_name = self.event_name_textbox.text()
         event_duration = self.event_duration_textbox.text()
-        
+
         if self.validate_activity():
             self.event_name_textbox.setText('')
             self.event_duration_textbox.setText('')
