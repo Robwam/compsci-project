@@ -2,6 +2,7 @@ from Scheduler.Views.SchedulePlotCanvas import SchedulePlotCanvas
 from Scheduler.Controllers.input_to_project import data_to_events_and_activities
 
 from Scheduler.Models.Project import Project
+from Scheduler.Services.ScheduleService import ScheduleService
 
 import pony.orm
 
@@ -22,10 +23,10 @@ TEST_DATA = [
     ['H', 2, set(['F', 'G'])],
 ]
 
-class MainController(QWidget):
+class ProjectWidget(QWidget):
 
     def __init__(self, parent=None, project_id=None):
-        super(MainController, self).__init__(parent)
+        super(ProjectWidget, self).__init__(parent)
 
         self.project_id = project_id
 
@@ -63,6 +64,8 @@ class MainController(QWidget):
 
         schedule_button = QPushButton("Schedule")
         schedule_button.clicked.connect(self.create_schedule_project)
+
+        # TODO disable editing, highlight row and allow delete only!
 
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(3)
@@ -141,6 +144,8 @@ class MainController(QWidget):
         self.hbox.addLayout(self.v_box_table_widget)
 
         self.setLayout(self.hbox)
+
+        # TODO check atleast one event added before schedule created
 
     def get_event_dependencies(self):
         event_dependencies = []
@@ -259,7 +264,7 @@ class MainController(QWidget):
             print(self.project_id, project)
             data_to_events_and_activities(self.get_table_data(), project)
 
-            schedule = project.create_schedule(worker_count)
+            schedule = ScheduleService.create_schedule(events=project.events, num_of_workers=worker_count)
 
         self.graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100, data=schedule)
         self.v_box_table_widget.addWidget(self.graph)

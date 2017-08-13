@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui
 
 from Scheduler.Controllers.HelpWindow import HelpWindow
-from Scheduler.Controllers.MainController import MainController
+from Scheduler.Controllers.ProjectWidget import ProjectWidget
 
 import pickle
 
@@ -34,7 +34,7 @@ class ProjectWindow(QMainWindow):
         self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Scheduler')
 
-        self.main_widget = MainController(self, project_id=project_id)
+        self.main_widget = ProjectWidget(self, project_id=project_id)
         self.setCentralWidget(self.main_widget)
         self.show()
 

@@ -4,7 +4,7 @@ from pony.orm import *
 # Activities are tasks that come from an event and lead to an event
 class Activity(DB.Entity):
     name = Required(str)
-    duration = Required(int, default=0)
+    duration = Required(int, default=0) # NOTE In hours
     float_time = Required(int, default=0)
     source = Optional('Event', reverse='activities_from_event')
     target = Optional('Event', reverse='dependencies')
