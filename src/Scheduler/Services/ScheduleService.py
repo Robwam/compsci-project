@@ -86,10 +86,12 @@ class ScheduleService(object):
     '''
     def calc_late_start_time(ordered_events):
         # reversed for backwards pass
-        reversed_list = list(reversed(ordered_events))
+        reversed_list = list(reversed(list(ordered_events)))
 
         # Special cases for sink event
-        ordered_events[-1].late_start_time = ordered_events[-1].early_start_time
+        reversed_list[0].late_start_time = reversed_list[0].early_start_time
+
+        print(reversed_list)
 
         for event in reversed_list[1:]:
             min_late_start_time = math.inf
@@ -98,6 +100,7 @@ class ScheduleService(object):
                 if potential_late_start_time < min_late_start_time:
                     min_late_start_time = potential_late_start_time
 
+            print(min_late_start_time, event, event.activities_from_event)
             event.late_start_time = int(min_late_start_time)
 
     '''
@@ -211,7 +214,7 @@ class ScheduleService(object):
     Args:
         Int workers - The number of workers. If none or if surplus
                       to requirement we use the min based on critical
-                      activty length.
+                      activity length.
 
     Returns:
         Dict - The worker schedule assignments

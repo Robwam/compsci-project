@@ -10,18 +10,16 @@ from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui
 
 # TODO
-DEBUG = True
-
-TEST_DATA = [
-    ['A', 3, set()],
-    ['B', 5, set()],
-    ['C', 2, set(['A'])],
-    ['D', 3, set(['A'])],
-    ['E', 3, set(['B', 'D'])],
-    ['F', 5, set(['C', 'E'])],
-    ['G', 1, set(['C'])],
-    ['H', 2, set(['F', 'G'])],
-]
+# TEST_DATA = [
+#     ['A', 3, set()],
+#     ['B', 5, set()],
+#     ['C', 2, set(['A'])],
+#     ['D', 3, set(['A'])],
+#     ['E', 3, set(['B', 'D'])],
+#     ['F', 5, set(['C', 'E'])],
+#     ['G', 1, set(['C'])],
+#     ['H', 2, set(['F', 'G'])],
+# ]
 
 class ProjectWidget(QWidget):
 
@@ -35,17 +33,60 @@ class ProjectWidget(QWidget):
         self.has_been_scheduled = False
 
         self.init_ui()
+        self.load_from_db()
 
-        # TODO NOTE debuggin prepopulate with test data
-        if DEBUG:
-            for row, item in enumerate(TEST_DATA):
-                self.event_name_textbox.setText(item[0])
-                self.event_duration_textbox.setText(str(item[1]))
-                self.add_event_from_inputs()
+        # # TODO NOTE debuggin prepopulate with test data
+        # if DEBUG:
+        #     for row, item in enumerate(TEST_DATA):
+        #         self.event_name_textbox.setText(item[0])
+        #         self.event_duration_textbox.setText(str(item[1]))
+        #         self.add_event_from_inputs()
+        #
+        #         self.add_event_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
+        #         # TODO NOTE we are not setting the dependency
 
-                self.add_event_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
-                # TODO NOTE we are not setting the dependency
+    @pony.orm.db_session
+    def load_from_db(self):
+        project = Project.get(id=self.project_id)
+        self.project_name_textbox.setText(project.name)
 
+        if project.number_of_workers:
+            self.project_worker_count_textbox.setText(str(project.number_of_workers))
+
+        # TODO 'has_been_scheduled': self.main_widget.has_been_scheduled
+        # TODO events + schedule
+
+        # Only continue if there are events
+        if project.events is None or len(project.events) == 0:
+            return
+
+        events = ScheduleService.order_events(project.events)
+        activities = ScheduleService.order_activities(events)
+
+        for row, activity in enumerate(activities):
+            print('Adding row!')
+            self.event_name_textbox.setText(activity.name)
+            self.event_duration_textbox.setText(str(activity.duration))
+            self.add_event_from_inputs()
+
+            dependencies = [a.name for a in activity.source.dependencies]
+            self.add_event_table_row([activity.name, str(activity.duration), ','.join(dependencies)], row_overide=row)
+
+
+            #self.add_event_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
+            # TODO NOTE we are not setting the dependency
+
+    @pony.orm.db_session
+    def update_project_db(self):
+        print('updating')
+        project = Project.get(id=self.project_id)
+        project.name = self.project_name_textbox.text()
+
+         # TODO validation
+        if self.project_worker_count_textbox.text():
+            project.number_of_workers = int(self.project_worker_count_textbox.text())
+
+        # TODO 'has_been_scheduled': self.main_widget.has_been_scheduled,
 
     def update_dependeny_listview(self):
         listview_model = QtGui.QStandardItemModel()
@@ -71,14 +112,21 @@ class ProjectWidget(QWidget):
         self.table_widget.setColumnCount(3)
         self.table_widget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies'])
 
+        # Fix headers
+        header = self.table_widget.horizontalHeader()
+        header.setSectionResizeMode(0, header.ResizeToContents)
+        header.setSectionResizeMode(1, header.ResizeToContents)
+        header.setSectionResizeMode(2, header.Stretch)
+
         # -- Project Metadata
         # Create our Horizontal container
         project_metadata_h_box = QHBoxLayout()
 
         # Create our text boxes
-        # TODO QLineEdits are causing the input in the top right
         self.project_name_textbox = QLineEdit()
+        self.project_name_textbox.textChanged.connect(self.update_project_db)
         self.project_worker_count_textbox = QLineEdit()
+        self.project_worker_count_textbox.textChanged.connect(self.update_project_db)
 
         # Create two vertical layouts for labels and inputs
         project_metadata_labels_v_box = QVBoxLayout()
@@ -161,36 +209,29 @@ class ProjectWidget(QWidget):
         event_name = self.event_name_textbox.text()
         event_duration = self.event_duration_textbox.text()
 
-        if self.validate_activity():
-            self.event_name_textbox.setText('')
-            self.event_duration_textbox.setText('')
-            self.add_event_table_row([event_name, event_duration, ','.join(self.get_event_dependencies())])
-            self.update_dependeny_listview()
+        if not self.validate_activity(event_name, event_duration):
+            return
 
+        self.event_name_textbox.setText('')
+        self.event_duration_textbox.setText('')
+        self.add_event_table_row([event_name, event_duration, ','.join(self.get_event_dependencies())])
+        self.update_dependeny_listview()
 
-    def validate_activity(self):
-        event_name = self.event_name_textbox.text()
-        event_duration = self.event_duration_textbox.text()
+    def show_error(self, message):
+        QMessageBox.about(self, "Error", message)
 
-        duration_notint = True
-
-        try:
-            int(event_duration)
-            duration_notint = False
-        except ValueError:
-            duration_notint = True
-
-        if event_name in self.event_names:
-            QMessageBox.about(self, "Error", "Activity name is not unique")
+    def validate_activity(self, event_name, event_duration):
+        if not event_duration.isdigit():
+            self.show_error("Duration must be an integer")
+            return False
+        elif event_name in self.event_names:
+            self.show_error("Activity name is not unique")
             return False
         elif event_name == '':
-            QMessageBox.about(self, "Error", "Activity name cannot be empty")
+            self.show_error("Activity name cannot be empty")
             return False
-        elif duration_notint:
-            QMessageBox.about(self, "Error", "Duration must be an integer")
-            return False
-        else:
-            return True
+
+        return True
 
     def add_event_table_row(self, data, row_overide=None):
         if row_overide is None:
@@ -226,20 +267,6 @@ class ProjectWidget(QWidget):
 
         return table_data
 
-    @pony.orm.db_session
-    def update_project_db(self):
-
-
-
-        project = Project.get(id=self.project_id)
-        project.name = self.project_name_textbox.text()
-
-         # TODO validation
-        if self.project_worker_count_textbox.text():
-            project.number_of_workers = int(self.project_worker_count_textbox.text())
-
-        # TODO 'has_been_scheduled': self.main_widget.has_been_scheduled,
-
     def create_schedule_project(self):
         # Delete old widget
         if self.graph:
@@ -250,18 +277,17 @@ class ProjectWidget(QWidget):
         worker_count_str = self.project_worker_count_textbox.text()
         if len(worker_count_str) == 0:
             worker_count = None
+        elif worker_count_str.isdigit() and int(worker_count_str) > 0:
+            worker_count = int(worker_count_str)
         else:
-            try:
-                worker_count = int(worker_count_str)
-                if worker_count <= 0:
-                    raise Exception("worker count must be positive")
-            except:
-                QMessageBox.about(self, "Error", "Worker count must be a positive integer")
-                return
+            self.show_error("Worker count must be a positive integer")
+            return
 
         with pony.orm.db_session:
             project = Project.get(id=self.project_id)
             print(self.project_id, project)
+            for event in project.events:
+                event.delete()
             data_to_events_and_activities(self.get_table_data(), project)
 
             schedule = ScheduleService.create_schedule(events=project.events, num_of_workers=worker_count)

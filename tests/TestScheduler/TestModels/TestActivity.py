@@ -1,4 +1,4 @@
-from Scheduler.Models.Activity import Activity, DummyActivity
+from Scheduler.Models.Activity import Activity
 
 from nose.tools import assert_equal
 

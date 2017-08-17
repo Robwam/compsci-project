@@ -1,39 +1,39 @@
 from Scheduler.Models.Event import Event
-from Scheduler.Models.Activity import Activity, DummyActivity
+from Scheduler.Models.Activity import Activity
 
 # ORDERABLE EVENTS
 
 # https://revisionworld.com/a2-level-level-revision/maths/decision-maths-0/critical-path-analysis
 # Event(identifier, dependencies)
-m1_event0 = Event('source', [])
-m1_event1 = Event('A', [])
-m1_event2 = Event('B,D', [])
-m1_event3 = Event('C', [])
-m1_event4 = Event('C,E', [])
-m1_event5 = Event('F,G', [])
-m1_event6 = Event('sink', [])
+m1_event_source = Event(identifier='source', [])
+m1_event_A = Event(identifier='A', [])
+m1_event_BD = Event(identifier='B,D', [])
+m1_event_C = Event(identifier='C', [])
+m1_event_CE = Event(identifier='C,E', [])
+m1_event_FG = Event(identifier='F,G', [])
+m1_event_sink = Event(identifier='sink', [])
 
 # Activity(name, duration, source, target)
-m1_activity_a = Activity('A', 3, m1_event0, m1_event1)
-m1_activity_b = Activity('B', 5, m1_event0, m1_event2)
-m1_activity_c = Activity('C', 2, m1_event1, m1_event3)
-m1_activity_d = Activity('D', 3, m1_event1, m1_event2)
-m1_activity_e = Activity('E', 3, m1_event2, m1_event4)
-m1_activity_f = Activity('F', 5, m1_event4, m1_event5)
-m1_activity_g = Activity('G', 1, m1_event3, m1_event5)
-m1_activity_h = Activity('H', 2, m1_event5, m1_event6)
+m1_activity_a = Activity('A', 3, m1_event_source, m1_event_A)
+m1_activity_b = Activity('B', 5, m1_event_source, m1_event_BD)
+m1_activity_c = Activity('C', 2, m1_event_A, m1_event_C)
+m1_activity_d = Activity('D', 3, m1_event_A, m1_event_BD)
+m1_activity_e = Activity('E', 3, m1_event_BD, m1_event_CE)
+m1_activity_f = Activity('F', 5, m1_event_CE, m1_event_FG)
+m1_activity_g = Activity('G', 1, m1_event_C, m1_event_FG)
+m1_activity_h = Activity('H', 2, m1_event_FG, m1_event_sink)
 
-m1_dummy_activity_event_3_4 = DummyActivity('C_dummy', m1_event3, m1_event4)
+m1_dummy_activity_event_3_4 = Activity('C_dummy', 0, m1_event_C, m1_event_CE)
 
 # Write out dependencies
-m1_event1.dependencies = [m1_activity_a]
-m1_event2.dependencies = [m1_activity_b, m1_activity_d]
-m1_event3.dependencies = [m1_activity_c]
-m1_event4.dependencies = [m1_activity_e, m1_dummy_activity_event_3_4]
-m1_event5.dependencies = [m1_activity_f, m1_activity_g]
-m1_event6.dependencies = [m1_activity_h]
+m1_event_A.dependencies = [m1_activity_a]
+m1_event_BD.dependencies = [m1_activity_b, m1_activity_d]
+m1_event_C.dependencies = [m1_activity_c]
+m1_event_CE.dependencies = [m1_activity_e, m1_dummy_activity_event_3_4]
+m1_event_FG.dependencies = [m1_activity_f, m1_activity_g]
+m1_event_sink.dependencies = [m1_activity_h]
 
-m1_events = [m1_event0, m1_event1, m1_event2, m1_event3, m1_event4, m1_event5, m1_event6]
+m1_events = [m1_event_source, m1_event_A, m1_event_BD, m1_event_C, m1_event_CE, m1_event_FG, m1_event_sink]
 m1_activities = [m1_activity_a, m1_activity_b, m1_activity_c, m1_activity_d, m1_activity_e, m1_activity_f, m1_activity_g, m1_activity_h, m1_dummy_activity_event_3_4]
 
 # No source events

@@ -8,7 +8,7 @@ class Activity(DB.Entity):
     float_time = Required(int, default=0)
     source = Optional('Event', reverse='activities_from_event')
     target = Optional('Event', reverse='dependencies')
-    project = Required('Project')
+    project = Optional('Project')
 
     # def __init__(self, name, duration, source=None, target=None, float_time=0):
     #     self.name = name

@@ -32,11 +32,16 @@ class ProjectWindow(QMainWindow):
         help_action.triggered.connect(self.help_dialog.show)
 
         self.setGeometry(300, 300, 800, 600)
-        self.setWindowTitle('Scheduler')
+        self.setWindowTitle('Project')
 
         self.main_widget = ProjectWidget(self, project_id=project_id)
         self.setCentralWidget(self.main_widget)
+
         self.show()
+
+    def closeEvent(self, evnt):
+        self.parent().populate_projects() # Refresh list
+        super(ProjectWindow, self).closeEvent(evnt)
 
     def save_schedule_image(self):
         # Error if no schedule diagram

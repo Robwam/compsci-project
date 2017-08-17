@@ -1,5 +1,6 @@
 from Scheduler.Configuration.database import DB
 from pony.orm import *
+from datetime import datetime
 
 '''
 Given events and activities can produce worker assignments
@@ -7,5 +8,6 @@ Given events and activities can produce worker assignments
 class Project(DB.Entity):
     name = Optional(str)
     number_of_workers = Optional(int)
-    activities = Set('Activity')
-    events = Set('Event')
+    created = Required(datetime, default=datetime.now())
+    activities = Set('Activity', cascade_delete=True)
+    events = Set('Event', cascade_delete=True)

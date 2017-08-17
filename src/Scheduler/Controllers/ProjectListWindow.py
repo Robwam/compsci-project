@@ -14,6 +14,9 @@ class ProjectListWindow(QWidget):
     def __init__(self, parent=None):
         super(ProjectListWindow, self).__init__(parent)
 
+        self.setGeometry(450, 300, 500, 400)
+        self.setWindowTitle('Scheduler')
+
         database.setup()
 
         # Add new button
@@ -21,8 +24,8 @@ class ProjectListWindow(QWidget):
         self.open_project_button.clicked.connect(self.open_project)
 
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(3)
-        self.table_widget.setHorizontalHeaderLabels(['Name', 'Date', 'Open'])
+        self.table_widget.setColumnCount(4)
+        self.table_widget.setHorizontalHeaderLabels(['Name', 'Date', 'Open', 'Delete'])
         self.table_widget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table_widget.setSelectionMode(QTableWidget.NoSelection)
         self.table_widget.setShowGrid(False)
@@ -32,6 +35,7 @@ class ProjectListWindow(QWidget):
         header.setSectionResizeMode(0, header.Stretch)
         header.setSectionResizeMode(1, header.ResizeToContents)
         header.setSectionResizeMode(2, header.ResizeToContents)
+        header.setSectionResizeMode(3, header.ResizeToContents)
 
         # Add projects to table
         self.populate_projects()
@@ -59,14 +63,24 @@ class ProjectListWindow(QWidget):
         for i, project in enumerate(projects):
             open_button = QPushButton("Open", self.table_widget)
             open_button.clicked.connect(partial(self.open_project, project.get_pk()))
+
+            delete_button = QPushButton("Delete", self.table_widget)
+            delete_button.clicked.connect(partial(self.delete_project, project.get_pk()))
+
             self.table_widget.setCellWidget(i, 0, QLabel(project.name))
-            self.table_widget.setCellWidget(i, 1, QLabel('12/03/17'))
+            self.table_widget.setCellWidget(i, 1, QLabel(project.created.strftime("%x")))
             self.table_widget.setCellWidget(i, 2, open_button)
+            self.table_widget.setCellWidget(i, 3, delete_button)
 
     def open_project(self, project_id):
-        print(project_id)
         project_window = ProjectWindow(self, project_id=project_id)
         project_window.show()
+
+    @pony.orm.db_session
+    def delete_project(self, project_id):
+        Project.get(id=project_id).delete()
+        #pony.orm.commit()
+        self.populate_projects() # Refresh list
 
     @pony.orm.db_session
     def open_new_project(self):

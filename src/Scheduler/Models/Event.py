@@ -8,10 +8,10 @@ class Event(DB.Entity):
     identifier = Required(str)
     early_start_time = Required(int, default=0)
     late_start_time = Required(int, default=0)
-    project = Required('Project')
+    project = Optional('Project')
 
-    dependencies = Set('Activity')
-    activities_from_event = Set('Activity')
+    dependencies = Set('Activity', cascade_delete=True)
+    activities_from_event = Set('Activity', cascade_delete=True)
 
     # def __init__(self, identifier, dependencies, early_start_time=0, late_start_time=0):
     #     self.identifier = identifier
