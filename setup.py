@@ -1,18 +1,23 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
-setup(name='Scheduler',
-      version='0.1',
-      description='Scheduler for computing project',
-      author='Charlie Robinson',
-      license='MIT',
-      packages=['Scheduler'],
-      install_requires=[
-        'pyqt5',
-        'matplotlib',
-        'pony'
-      ],
-    scripts=['bin/scheduler-gui'],
-    test_suite='nose.collector',
-    tests_require=['nose'],
-    python_requires=">=3.3"
-    zip_safe=False)
+setup(
+  name='Scheduler',
+  version='0.1',
+  description='Scheduler for computing project',
+  author='Charlie Robinson',
+  author_email='charlie@begly.co.uk',
+  url='https://github.com/Robwam/compsci-project',
+  license='MIT',
+  package_dir = {'': 'src'},
+  packages=find_packages('src'),
+  install_requires=[
+    'pyqt5',
+    'matplotlib',
+    'pony'
+  ],
+  python_requires=">=3.3",
+  scripts=['bin/scheduler-gui'],
+  test_suite='nose.collector',
+  tests_require=['nose'],
+  zip_safe=False
+)

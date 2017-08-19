@@ -1,0 +1,11 @@
+Metadata-Version: 1.2
+Name: Scheduler
+Version: 0.1
+Summary: Scheduler for computing project
+Home-page: https://github.com/Robwam/compsci-project
+Author: Charlie Robinson
+Author-email: charlie@begly.co.uk
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.3
