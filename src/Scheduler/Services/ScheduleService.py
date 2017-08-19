@@ -1,3 +1,4 @@
+from Scheduler.Exceptions import ScheduleError
 import math
 
 # The overarching project that needs to be completed
@@ -27,9 +28,9 @@ class ScheduleService(object):
                 source_event = True
 
         if not source_event:
-            raise Exception('No source event')
+            raise ScheduleError('No source event')
 
-        # Adds events to ordered list in dependency order
+        # Adds events to orrdered list in dependency order
         while len(event_list) > 0:
             event_added = False
             for event in event_list:
@@ -45,7 +46,7 @@ class ScheduleService(object):
                     event_added = True
 
             if event_added == False:
-                raise Exception('Events unorderable')
+                raise ScheduleError('Events unorderable')
 
         return ordered
 
@@ -91,8 +92,6 @@ class ScheduleService(object):
         # Special cases for sink event
         reversed_list[0].late_start_time = reversed_list[0].early_start_time
 
-        print(reversed_list)
-
         for event in reversed_list[1:]:
             min_late_start_time = math.inf
             for activity in event.activities_from_event:
@@ -100,7 +99,6 @@ class ScheduleService(object):
                 if potential_late_start_time < min_late_start_time:
                     min_late_start_time = potential_late_start_time
 
-            print(min_late_start_time, event, event.activities_from_event)
             event.late_start_time = int(min_late_start_time)
 
     '''
@@ -222,6 +220,9 @@ class ScheduleService(object):
     def create_schedule(events, num_of_workers=None):
         ordered_events = ScheduleService.order_events(events)
         ordered_activities = ScheduleService.order_activities(ordered_events)
+
+        if (len(ordered_activities) == 0):
+            raise ScheduleError('No activities to schedule')
 
         ScheduleService.calc_early_start_time(ordered_events)
         ScheduleService.calc_late_start_time(ordered_events)

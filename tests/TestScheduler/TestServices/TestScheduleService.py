@@ -3,17 +3,22 @@ from Scheduler.Services.ScheduleService import ScheduleService
 from Scheduler.Models.Project import Project
 from Scheduler.Models.Event import Event
 from Scheduler.Models.Activity import Activity
+from Scheduler.Exceptions import ScheduleError
 
 from unittest import TestCase
-from nose.tools import assert_equal, assert_raises
+from nose.tools import assert_equal, assert_raises, nottest
 
 import pony.orm
 
 class TestScheduleService(TestCase):
 
+    test_database_filename = "projects.test.db"
+
     def setup_class():
-        test_database_filename = "../../../projects.test.db"
-        database.setup(test_database_filename)
+        database.setup(TestScheduleService.test_database_filename)
+
+    def teardown_class():
+        database.teardown(TestScheduleService.test_database_filename)
 
     def tearDown(self):
         database.DB.drop_all_tables(True)
@@ -38,8 +43,8 @@ class TestScheduleService(TestCase):
         assert(actual == expected_1 or actual == expected_2)
 
         # Test validation errors
-        assert_raises(Exception, ScheduleService.order_events, no_source_events)
-        assert_raises(Exception, ScheduleService.order_events, unorderable_events)
+        assert_raises(ScheduleError, ScheduleService.order_events, no_source_events)
+        assert_raises(ScheduleError, ScheduleService.order_events, unorderable_events)
 
     # Test correct float_times for all activities
     @pony.orm.db_session
@@ -142,6 +147,7 @@ class TestScheduleService(TestCase):
 
     @pony.orm.db_session
     def test_integration_create_schedule_two_workers(self):
+        # TODO test failing
         events = Project.get(name="mock").events
         events = ScheduleService.order_events(events)
         activities = ScheduleService.order_activities(events)

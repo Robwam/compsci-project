@@ -8,6 +8,7 @@ Computing Project Coursework
 - Matplotlib
 - nosetests
 - Python >3.4
+- Pony
 
 ```
 $ git clone https://github.com/Robwam/compsci-project.git

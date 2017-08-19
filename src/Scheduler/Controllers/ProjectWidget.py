@@ -4,7 +4,11 @@ from Scheduler.Controllers.input_to_project import data_to_events_and_activities
 from Scheduler.Models.Project import Project
 from Scheduler.Services.ScheduleService import ScheduleService
 
+from Scheduler.Exceptions import ScheduleError
+
 import pony.orm
+
+from functools import partial
 
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui
@@ -53,9 +57,6 @@ class ProjectWidget(QWidget):
         if project.number_of_workers:
             self.project_worker_count_textbox.setText(str(project.number_of_workers))
 
-        # TODO 'has_been_scheduled': self.main_widget.has_been_scheduled
-        # TODO events + schedule
-
         # Only continue if there are events
         if project.events is None or len(project.events) == 0:
             return
@@ -63,8 +64,9 @@ class ProjectWidget(QWidget):
         events = ScheduleService.order_events(project.events)
         activities = ScheduleService.order_activities(events)
 
+        activities = reversed(activities)
+
         for row, activity in enumerate(activities):
-            print('Adding row!')
             self.event_name_textbox.setText(activity.name)
             self.event_duration_textbox.setText(str(activity.duration))
             self.add_event_from_inputs()
@@ -72,21 +74,20 @@ class ProjectWidget(QWidget):
             dependencies = [a.name for a in activity.source.dependencies]
             self.add_event_table_row([activity.name, str(activity.duration), ','.join(dependencies)], row_overide=row)
 
-
             #self.add_event_table_row([item[0], item[1], ','.join(item[2])], row_overide=row)
             # TODO NOTE we are not setting the dependency
 
+        if project.has_been_scheduled:
+            self.create_schedule_project()
+
     @pony.orm.db_session
     def update_project_db(self):
-        print('updating')
         project = Project.get(id=self.project_id)
         project.name = self.project_name_textbox.text()
 
          # TODO validation
         if self.project_worker_count_textbox.text():
             project.number_of_workers = int(self.project_worker_count_textbox.text())
-
-        # TODO 'has_been_scheduled': self.main_widget.has_been_scheduled,
 
     def update_dependeny_listview(self):
         listview_model = QtGui.QStandardItemModel()
@@ -100,23 +101,24 @@ class ProjectWidget(QWidget):
 
     def init_ui(self):
         self.main_widget = QWidget(self)
-        add_event_button = QPushButton("Add event")
+        add_event_button = QPushButton("Add activity")
         add_event_button.clicked.connect(self.add_event_from_inputs)
+        add_event_button.setToolTip('Add a new activity to the project')
 
         schedule_button = QPushButton("Schedule")
         schedule_button.clicked.connect(self.create_schedule_project)
 
-        # TODO disable editing, highlight row and allow delete only!
-
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(3)
-        self.table_widget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies'])
+        self.table_widget.setColumnCount(4)
+        self.table_widget.setHorizontalHeaderLabels(['Name', 'Duration', 'Dependencies', 'Delete'])
+        self.table_widget.setSelectionMode(QTableWidget.NoSelection)
 
         # Fix headers
         header = self.table_widget.horizontalHeader()
         header.setSectionResizeMode(0, header.ResizeToContents)
         header.setSectionResizeMode(1, header.ResizeToContents)
         header.setSectionResizeMode(2, header.Stretch)
+        header.setSectionResizeMode(3, header.ResizeToContents)
 
         # -- Project Metadata
         # Create our Horizontal container
@@ -137,8 +139,11 @@ class ProjectWidget(QWidget):
         project_metadata_h_box.addLayout(project_metadata_inputs_v_box)
 
         # Create labels and inputs
-        project_metadata_labels_v_box.addWidget(QLabel("Project name:"))
+        proejct_name_label = QLabel("Project name:")
+        proejct_name_label.setToolTip('The name of the project')
+        project_metadata_labels_v_box.addWidget(proejct_name_label)
         project_metadata_inputs_v_box.addWidget(self.project_name_textbox)
+
         project_metadata_labels_v_box.addWidget(QLabel("Number of worker:"))
         project_metadata_inputs_v_box.addWidget(self.project_worker_count_textbox)
 
@@ -249,12 +254,36 @@ class ProjectWidget(QWidget):
         for i, d in enumerate(data):
             self.table_widget.setItem(last_row, i, QTableWidgetItem(str(d)))
 
+        # Add the delete button
+        delete_button = QPushButton("Delete")
+        delete_button.clicked.connect(partial(self.delete_activity, data[0], last_row))
+
+        self.table_widget.setCellWidget(last_row, 3, delete_button)
+
+    def delete_activity(self, activity_name, row_index):
+        self.table_widget.removeRow(row_index)
+
+        activity_index = self.event_names.index(activity_name)
+        del(self.event_names[activity_index])
+        self.update_dependeny_listview()
+
+        # Delete any dependencies
+        for row_index, row in enumerate(self.get_table_data()):
+            dependencies = row[2]
+            if activity_name in dependencies:
+                del(dependencies[dependencies.index(activity_name)])
+                self.table_widget.setItem(row_index, 2, QTableWidgetItem(",".join(dependencies)))
+
+
     def get_table_data(self):
         table_model = self.table_widget.model()
         table_data = []
+
         for row in range(table_model.rowCount()):
             table_data.append([])
-            for column in range(table_model.columnCount()):
+
+            # TODO as delete is in the last index
+            for column in range(table_model.columnCount() - 1):
                 index = table_model.index(row, column)
                 data = str(table_model.data(index))
                 if column == 1:
@@ -285,18 +314,21 @@ class ProjectWidget(QWidget):
 
         with pony.orm.db_session:
             project = Project.get(id=self.project_id)
-            print(self.project_id, project)
             for event in project.events:
                 event.delete()
             data_to_events_and_activities(self.get_table_data(), project)
 
-            schedule = ScheduleService.create_schedule(events=project.events, num_of_workers=worker_count)
+            try:
+                schedule = ScheduleService.create_schedule(events=project.events, num_of_workers=worker_count)
+            except ScheduleError as err:
+                self.show_error(str(err))
+                return
+
+            project.has_been_scheduled = True
 
         self.graph = SchedulePlotCanvas(self.main_widget, width=5, height=4, dpi=100, data=schedule)
         self.v_box_table_widget.addWidget(self.graph)
         self.update()
-
-        self.has_been_scheduled = True
 
         # NOTE we save the databse only on update of schedule
         self.update_project_db()

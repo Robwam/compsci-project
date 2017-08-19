@@ -8,11 +8,19 @@ from PyQt5 import QtCore, QtGui
 
 from Scheduler.Controllers.ProjectWindow import ProjectWindow
 from Scheduler.Models.Project import Project
+import Scheduler.Configuration.config as config
 
+import os
 
 class ProjectListWindow(QWidget):
     def __init__(self, parent=None):
         super(ProjectListWindow, self).__init__(parent)
+
+        # TODO fix loading and saving
+
+        # TODO create an icon
+        #window_icon_path = os.path.join(os.getcwd(), config.window_icon_path)
+        #self.setWindowIcon(QtGui.QIcon(QtGui.QPixmap(window_icon_path)))
 
         self.setGeometry(450, 300, 500, 400)
         self.setWindowTitle('Scheduler')
