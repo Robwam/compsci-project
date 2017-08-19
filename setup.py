@@ -6,7 +6,7 @@ setup(
   description='Scheduler for computing project',
   author='Charlie Robinson',
   author_email='charlie@begly.co.uk',
-  url='https://github.com/Robwam/compsci-project',
+  url='',
   license='MIT',
   package_dir = {'': 'src'},
   packages=find_packages('src'),
@@ -19,5 +19,8 @@ setup(
   scripts=['bin/scheduler-gui'],
   test_suite='nose.collector',
   tests_require=['nose'],
-  zip_safe=False
+  zip_safe=False,
+  package_data= {
+    '': ['README.md', 'data/projects.db']
+  }
 )

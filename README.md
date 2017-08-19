@@ -2,7 +2,8 @@
 Computing Project Coursework
 
 ## Installing
-Download directory and then
+Unzip directory and then
+`$ cd Scheduler-0.1`
 `$ pip install .`
 
 ## Running
@@ -13,3 +14,6 @@ Download directory and then
 
 ## Creating package
 `$ python setup.py sdist`
+
+## Notes
+Example database included for better viewing

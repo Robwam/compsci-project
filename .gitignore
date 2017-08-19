@@ -1,5 +1,5 @@
 __pycache__
 *.pyc
 *.png
-*.sched
-*.jpg
+*.DS_Store
+build
