@@ -13,7 +13,7 @@ Unzip directory and then
 `$ python setup.py test`
 
 ## Creating package
-`$ python setup.py sdist`
+`$ python setup.py sdist --formats zip`
 
 ## Notes
 Example database included for better viewing
