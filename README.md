@@ -7,7 +7,7 @@ Unzip directory and then
 `$ pip install .`
 
 ## Running
-`$ bin/scheduler-gui`
+`$ python bin/scheduler-gui`
 
 ### Tests
 `$ python setup.py test`

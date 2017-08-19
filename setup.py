@@ -20,7 +20,5 @@ setup(
   test_suite='nose.collector',
   tests_require=['nose'],
   zip_safe=False,
-  package_data= {
-    '': ['README.md', 'data/projects.db']
-  }
+  include_package_data=True,
 )
