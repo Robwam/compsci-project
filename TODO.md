@@ -11,7 +11,7 @@
 * [ ] Described, justifying choices made, the usability features to be included in the solution.
   * [~] Proposed screen designs and usability features
     * Better analsysi of usability features e.g. shortcuts
-* [ ] Identified and justified the key variables / data structures / classes (as appropriate to the proposed solution) justifying and explaining any necessary validation.
+* [X] Identified and justified the key variables / data structures / classes (as appropriate to the proposed solution) justifying and explaining any necessary validation.
 * [~] Detailed summary of process including key variables and structures
   * Explain validation?
   * TODO List key varibles, other key funcitons?
