@@ -1,19 +1,30 @@
-function create_schedule(events, number_of_workers)
-  events_in_order = order_events(events)
-  activities_in_order = order_activities(events_in_order)
-  IF activities_in_order is empty THEN
-    Error("No activities to schedule")
-  ENDIF
+FUNCTION order_events(events_list)
+  NEW list ordered
+  source_event = FALSE
   
-  calc_early_start_time(events_in_order)
-  calc_late_start_time(events_in_order)
-  calc_floats(activities_in_order)
+  FOR event in events_list
+    IF event has no dependencies THEN
+      source_event = TRUE
+    ELSE
+      Error("List is invalid")
+    ENDIF
+  ENDFOR
   
-  critical_path_length = calc_critical_path_length(ordered_activites)
-  minimum_workers = calc_minimum_workers(critical_path_length, activities_in_order)
+  WHILE events_list is not empty
+    FOR event in events_list
+      IF all event.dependencies in ordered THEN
+        add event to ordered
+        remove event from events_list
+        event_added = TRUE
+      ENDIF
+    ENDFOR
+    IF event_added == FALSE THEN
+      Error("List unorderable")
+    ENDIF
+  ENDWHILE
   
-  IF number_of_workers > minimum_workers OR number_of_workers = None THEN
-    number_of_workers = minimum_workers
-  ENDIF
- 
-END FUNCTION
+  RETURN ordered
+ENDFUNCTION
+      
+    
+  
