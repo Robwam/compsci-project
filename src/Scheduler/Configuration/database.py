@@ -5,6 +5,12 @@ import os
 
 DB = Database()
 
+'''
+Opens/creates an sqlite database and maps objects
+
+Args:
+    Str filename: The filename of the database, defaults to the one set in config
+'''
 def setup(filename=None):
 
     if filename is None:
@@ -18,6 +24,12 @@ def setup(filename=None):
     DB.bind(provider='sqlite', filename=path)
     DB.generate_mapping(create_tables=True)
 
+'''
+Deletes database
+
+Args:
+    Str filename: The filename of the database, defaults to the one set in config
+'''
 def teardown(filename=None):
     if filename is None:
         filename = config.database_file
