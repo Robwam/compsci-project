@@ -156,13 +156,13 @@ class TestScheduleService(TestCase):
             0: [
                 ScheduleService.activity_by_name('A', activities),
                 ScheduleService.activity_by_name('C', activities),
-                ScheduleService.activity_by_name('E', activities),
+                ScheduleService.activity_by_name('G', activities),
                 ScheduleService.activity_by_name('F', activities)
             ],
             1: [
                 ScheduleService.activity_by_name('B', activities),
                 ScheduleService.activity_by_name('D', activities),
-                ScheduleService.activity_by_name('G', activities),
+                ScheduleService.activity_by_name('E', activities),
                 ScheduleService.activity_by_name('H', activities)
             ]
         }

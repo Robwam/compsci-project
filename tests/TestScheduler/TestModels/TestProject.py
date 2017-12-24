@@ -1,4 +1,0 @@
-
-class TestProject():
-    # TODO
-    pass

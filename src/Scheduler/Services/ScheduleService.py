@@ -1,11 +1,6 @@
 from Scheduler.Exceptions import ScheduleError
 import math
 
-# The overarching project that needs to be completed
-# Made up of events happening in sequence
-
-# TODO update Args and Return types
-
 '''
 Static class methods
 '''
@@ -13,6 +8,9 @@ class ScheduleService(object):
 
     '''
     Returns list of events in dependency ordered
+
+    Args:
+        [Event] events - A list of events to order
 
     Returns:
         [Event] - A list of events
@@ -35,7 +33,7 @@ class ScheduleService(object):
             event_added = False
             for event in event_list:
                 add_event = True
-                for dep in event.dependencies:
+                for dep in sorted(event.dependencies, key=lambda a: a.name):
                     if dep.source not in ordered:
                         add_event = False
                         break
@@ -53,14 +51,16 @@ class ScheduleService(object):
     '''
     Updates ordered activities a list of activities in order
 
-    NOTE: Assumes events are in order
+    Args:
+        [Event] ordered_events - A list of ordered events
 
-    NOTE this function is trivial in complexity therefore does not require testing
+    Returns:
+        [Activity] - A list of ordered activities
     '''
     def order_activities(ordered_events):
         activities = []
         for event in ordered_events:
-            activities += event.activities_from_event # Add two lists together
+            activities += sorted(event.activities_from_event, key=lambda a: a.name) # Add two lists together
 
         return list(reversed(activities))
 
@@ -68,11 +68,14 @@ class ScheduleService(object):
     Updates early starts of every event
 
     For each event, finds maximum combination of activity duration and activity sources early starts
+
+    Args:
+        [Event] ordered_events - A list of ordered events
     '''
     def calc_early_start_time(ordered_events):
         for event in ordered_events:
             max_early_start_time = 0
-            for activity in event.dependencies:
+            for activity in sorted(event.dependencies, key=lambda a: a.name):
                 potential_start = activity.duration + activity.source.early_start_time
                 if potential_start > max_early_start_time:
                     max_early_start_time = potential_start
@@ -84,6 +87,9 @@ class ScheduleService(object):
 
     Backwards pass for each event, finds minimum combination
     of activity duration and activity target late start
+
+    Args:
+        [Event] ordered_events - A list of ordered events
     '''
     def calc_late_start_time(ordered_events):
         # reversed for backwards pass
@@ -94,7 +100,7 @@ class ScheduleService(object):
 
         for event in reversed_list[1:]:
             min_late_start_time = math.inf
-            for activity in event.activities_from_event:
+            for activity in sorted(event.activities_from_event, key=lambda a: a.name):
                 potential_late_start_time = activity.target.late_start_time - activity.duration
                 if potential_late_start_time < min_late_start_time:
                     min_late_start_time = potential_late_start_time
@@ -103,6 +109,9 @@ class ScheduleService(object):
 
     '''
     Calculates and updates float time for every activity
+
+    Args:
+        [Activity] activities - A list of activities
 
     NOTE events should have late_start_time and early_start_time already calculated
     '''
@@ -115,12 +124,11 @@ class ScheduleService(object):
 
     Critical activities are activities with a float of 0
 
+    Args:
+        [Activity] activities - A list of activities
+
     Returns:
         Int - The length of the critical path
-
-    TODO these activities are likely out of order and need to be ordered
-
-    NOTE this function is trivial in complexity therefore does not require testing
     '''
     def calc_critical_path_length(activities):
         critical_activities = []
@@ -133,7 +141,11 @@ class ScheduleService(object):
     '''
     Returns the minimum number of workers
 
-    Devides total sum of duration of activities by length of criticle path and rounds up
+    Divides total sum of duration of activities by length of criticle path and rounds up
+
+    Args:
+        Int critical_path_length - The length of the critical path
+        [Activity] activities - A list of activities
 
     Returns:
         Int - The minimum number of workers
@@ -147,6 +159,7 @@ class ScheduleService(object):
 
     Args:
         Int num_workers - The number of workers to use in the schedule
+        [Activity] ordered_activities - A list of ordered activities
 
     Returns:
         Dict - A dictionary keyed on worker id with values being the activities they are assigned
@@ -174,11 +187,10 @@ class ScheduleService(object):
 
     Args:
         Str activity_name - The name of the activity
+        [Activity] activities - A list of activities
 
     Returns:
         Activity - The corresponding activity
-
-    NOTE this function is trivial in complexity therefore does not require testing
     '''
     def activity_by_name(activity_name, activities):
         for activity in activities:
@@ -192,11 +204,10 @@ class ScheduleService(object):
 
     Args:
         Str identifier - The name of the event
+        [Event] events - A list of events
 
     Returns:
         Event - The corresponding event
-
-    NOTE this function is trivial in complexity therefore does not require testing
     '''
     def event_by_identitifer(identifier, events):
         for event in events:
@@ -210,16 +221,20 @@ class ScheduleService(object):
     worker schedule assignments
 
     Args:
+        [Event] events - A list of events
         Int workers - The number of workers. If none or if surplus
                       to requirement we use the min based on critical
-                      activity length.
+                      activity length. Defaults to None.
 
     Returns:
         Dict - The worker schedule assignments
     '''
     def create_schedule(events, num_of_workers=None):
         ordered_events = ScheduleService.order_events(events)
+        # TODO print(ordered_events)
+        print(ordered_events[0].activities_from_event) # TODO
         ordered_activities = ScheduleService.order_activities(ordered_events)
+        print(ordered_events) # TODO
 
         if (len(ordered_activities) == 0):
             raise ScheduleError('No activities to schedule')

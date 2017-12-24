@@ -1,7 +1,9 @@
 from Scheduler.Configuration.database import DB
 from pony.orm import *
 
-# Activities are tasks that come from an event and lead to an event
+'''
+Activities are tasks that come from an event and lead to an event
+'''
 class Activity(DB.Entity):
     name = Required(str)
     duration = Required(int, default=0) # NOTE In hours

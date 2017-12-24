@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
@@ -8,10 +6,14 @@ from matplotlib.dates import MONTHLY, DateFormatter, rrulewrapper, RRuleLocator
 
 from pylab import *
 
-import logging
-logger = logging.getLogger(__name__)
+'''
+Plot a Gantt chart
 
-
+Args:
+    Object fig: The matplotlib figure
+    Object ax: The matplotlib axes
+    Object data: The schedule data
+'''
 def plot_gantt(fig, ax, data):
     for worker_id, worker_activities in data.items():
         left = 0
@@ -22,7 +24,8 @@ def plot_gantt(fig, ax, data):
             # Get label with character limit
             name = activity.name[0:min(15, len(activity.name))]
 
-            ax.barh((worker_id*1)+0.5, activity.duration, height=1, left=left, align='center', color='blue', edgecolor='black', linewidth=2, tick_label='bannaa')
+            # Add a bar
+            ax.barh((worker_id*1)+0.5, activity.duration, height=1, left=left, align='center', color='blue', edgecolor='black', linewidth=2)
             label = ax.text(left + (activity.duration/2), (worker_id*1)+0.5, name, verticalalignment='center', horizontalalignment='center', rotation=90)
 
 

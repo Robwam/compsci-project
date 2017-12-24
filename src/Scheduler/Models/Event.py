@@ -3,7 +3,9 @@ from pony.orm import *
 
 import math
 
-# Events connect activities, starting at the source node and ending at the sink node
+'''
+Events connect activities, starting at the source node and ending at the sink node
+'''
 class Event(DB.Entity):
     identifier = Required(str)
     early_start_time = Required(int, default=0)
@@ -12,12 +14,6 @@ class Event(DB.Entity):
 
     dependencies = Set('Activity', cascade_delete=True)
     activities_from_event = Set('Activity', cascade_delete=True)
-
-    # def __init__(self, identifier, dependencies, early_start_time=0, late_start_time=0):
-    #     self.identifier = identifier
-    #     self.dependencies = dependencies
-    #     self.early_start_time = early_start_time
-    #     self.late_start_time = late_start_time
 
     def __repr__(self):
         if self.early_start_time == math.inf:

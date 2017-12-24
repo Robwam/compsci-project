@@ -9,15 +9,10 @@ import matplotlib.pyplot as plt
 import logging
 logger = logging.getLogger(__name__)
 
-# import matplotlib.pyplot as plt
-# fig, ax = plt.subplots( nrows=1, ncols=1 )  # create figure & 1 axis
-# ax.plot([0,1,2], [10,20,3])
-# fig.savefig('path/to/save/image/to.png')   # save the figure to file
-# plt.close(fig)
-
+'''
+Canvas for plts
+'''
 class SchedulePlotCanvas(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
-
     def __init__(self, parent=None, width=5, height=4, dpi=100, data=None):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
@@ -31,6 +26,12 @@ class SchedulePlotCanvas(FigureCanvas):
 
         FigureCanvas.updateGeometry(self)
 
+    '''
+    Compute the figure
+
+    Args:
+        Object data: The schedule data
+    '''
     def compute_figure(self, data):
         if data is None:
             return
@@ -38,7 +39,12 @@ class SchedulePlotCanvas(FigureCanvas):
         self.data = data
         plot_gantt.plot_gantt(self.fig, self.axes, self.data)
 
-    # Compute and save figure, NOTE backed by matplotlib not pyqt5
+    '''
+    Compute and save figure, NOTE backed by matplotlib not pyqt5
+
+    Args:
+        Str path: The filename to save the figure
+    '''
     def save_figure(self, path):
         fig, axes = plt.subplots(nrows=1, ncols=1)
         plot_gantt.plot_gantt(fig, axes, self.data)
