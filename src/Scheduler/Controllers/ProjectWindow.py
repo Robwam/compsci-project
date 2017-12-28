@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui
 
-from Scheduler.Controllers.HelpWindow import HelpWindow
 from Scheduler.Controllers.ProjectWidget import ProjectWidget
 
 import pickle
@@ -28,16 +27,6 @@ class ProjectWindow(QMainWindow):
 
         schedule_image_action = menu.addAction('Save Schedule Image')
         schedule_image_action.triggered.connect(self.save_schedule_image)
-
-        # Add help window
-        self.help_dialog = HelpWindow(self)
-        self.help_dialog.setGeometry(325, 300, 750, 600)
-        self.help_dialog.setWindowTitle('Help')
-
-        # Add help menu
-        help_menu = self.menuBar().addMenu('Help')
-        help_action = help_menu.addAction('help')
-        help_action.triggered.connect(self.help_dialog.show)
 
         self.setGeometry(300, 300, 800, 600)
         self.setWindowTitle('Project')

@@ -86,8 +86,6 @@ class TestScheduleService(TestCase):
         ScheduleService.calc_early_start_time(events)
         ScheduleService.calc_late_start_time(events)
 
-        print(events)
-
         # Edge case
         assert_equal(Event.get(identifier='source').late_start_time, 0)
 
@@ -147,7 +145,6 @@ class TestScheduleService(TestCase):
 
     @pony.orm.db_session
     def test_integration_create_schedule_two_workers(self):
-        # TODO test failing
         events = Project.get(name="mock").events
         events = ScheduleService.order_events(events)
         activities = ScheduleService.order_activities(events)
