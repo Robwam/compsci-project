@@ -50,9 +50,6 @@ def create_project():
 def query_project():
     a = Activity.get(name='4')
     e = a.source_event
-    print(a.name, a.source_event, a.target_event, a.project)
-
-    print('Source envet', e, e.activities_from_event)
 
 #create_project()
 query_project()

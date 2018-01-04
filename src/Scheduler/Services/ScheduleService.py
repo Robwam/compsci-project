@@ -231,10 +231,7 @@ class ScheduleService(object):
     '''
     def create_schedule(events, num_of_workers=None):
         ordered_events = ScheduleService.order_events(events)
-        # TODO print(ordered_events)
-        print(ordered_events[0].activities_from_event) # TODO
         ordered_activities = ScheduleService.order_activities(ordered_events)
-        print(ordered_events) # TODO
 
         if (len(ordered_activities) == 0):
             raise ScheduleError('No activities to schedule')
